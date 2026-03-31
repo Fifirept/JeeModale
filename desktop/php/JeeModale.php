@@ -8,7 +8,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 ?>
 
 <div class="row row-overflow">
-	<!-- Page d'accueil du plugin -->
 	<div class="col-xs-12 eqLogicThumbnailDisplay">
 		<legend><i class="fas fa-cog"></i> {{Gestion}}</legend>
 		<div class="eqLogicThumbnailContainer">
@@ -52,7 +51,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 		?>
 	</div>
 
-	<!-- Page de présentation de l'équipement -->
 	<div class="col-xs-12 eqLogic" style="display: none;">
 		<div class="input-group pull-right" style="display:inline-flex;">
 			<span class="input-group-btn">
@@ -71,7 +69,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 		</ul>
 
 		<div class="tab-content">
-			<!-- Onglet Equipement -->
 			<div role="tabpanel" class="tab-pane active" id="eqlogictab">
 				<form class="form-horizontal">
 					<fieldset>
@@ -119,50 +116,37 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 							<legend><i class="fas fa-cogs"></i> {{Apparence du widget}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Icône du widget}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Cliquez sur le bouton pour choisir une icône}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Icône ou image du widget}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Ouvre le sélecteur d'icônes et d'images Jeedom. Choisissez une icône OU une image.}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<div class="input-group">
-										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="iconClass" placeholder="fas fa-window-maximize">
-										<span class="input-group-btn">
-											<a class="btn btn-default" id="bt_chooseIcon" title="{{Choisir une icône}}"><i class="fas fa-flag"></i> {{Icône}}</a>
-										</span>
-									</div>
-									<span id="jeeModale-icon-preview-inline" style="font-size:24px;margin-top:5px;display:inline-block;"></span>
+									<a class="btn btn-default" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
+									<a class="btn btn-danger btn-sm" id="bt_clearWidgetIcon"><i class="fas fa-times"></i> {{Effacer}}</a>
+									<!-- Stockage du HTML brut retourné par jeedomUtils.chooseIcon -->
+									<input type="text" class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="display:none;">
+									<div id="jeeModale-icon-preview" style="font-size:2em;margin-top:8px;"></div>
 								</div>
 							</div>
+
+							<legend><i class="fas fa-expand-arrows-alt"></i> {{Dimensions de la modale}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Image personnalisée}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Télécharger une image pour remplacer l'icône sur le widget}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Largeur (px)}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Largeur de la modale en pixels. Laisser vide pour auto.}}"></i></sup>
 								</label>
-								<div class="col-sm-6">
-									<div class="input-group">
-										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="customImage" placeholder="{{Laisser vide pour utiliser l'icône}}" id="in_customImage">
-										<span class="input-group-btn">
-											<a class="btn btn-default" id="bt_uploadImage" title="{{Envoyer une image}}"><i class="fas fa-upload"></i></a>
-											<a class="btn btn-danger" id="bt_clearImage" title="{{Supprimer l'image}}"><i class="fas fa-times"></i></a>
-										</span>
-									</div>
-									<input type="file" id="in_uploadImageFile" accept="image/*" style="display:none;">
-									<img id="jeeModale-image-preview" src="" style="max-width:80px;max-height:80px;margin-top:5px;display:none;">
+								<div class="col-sm-3">
+									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalWidth" placeholder="auto" min="200">
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Largeur du widget (px)}}</label>
+								<label class="col-sm-4 control-label">{{Hauteur (px)}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Hauteur de la modale en pixels. Laisser vide pour auto.}}"></i></sup>
+								</label>
 								<div class="col-sm-3">
-									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="widgetWidth" placeholder="120" min="40">
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Hauteur du widget (px)}}</label>
-								<div class="col-sm-3">
-									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="widgetHeight" placeholder="120" min="40">
+									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalHeight" placeholder="auto" min="100">
 								</div>
 							</div>
 						</div>
 
-						<!-- Partie droite -->
 						<div class="col-lg-6">
 							<legend><i class="fas fa-info"></i> {{Informations}}</legend>
 							<div class="form-group">
@@ -176,7 +160,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 				</form>
 			</div>
 
-			<!-- Onglet Commandes -->
 			<div role="tabpanel" class="tab-pane" id="commandtab">
 				<div class="pull-right" style="margin-top:5px;">
 					<a class="btn btn-success btn-sm" id="bt_addTargetEqLogic"><i class="fas fa-plus-circle"></i> {{Ajouter un équipement}}</a>
@@ -199,7 +182,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 					</table>
 				</div>
 			</div>
-
 		</div>
 	</div>
 </div>

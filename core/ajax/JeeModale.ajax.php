@@ -25,17 +25,6 @@ try {
 
 	ajax::init();
 
-	if (init('action') == 'saveWidgetSize') {
-		$eqLogic = JeeModale::byId(init('id'));
-		if (!is_object($eqLogic)) {
-			throw new Exception(__('Équipement introuvable', __FILE__));
-		}
-		$eqLogic->setConfiguration('widgetWidth', init('width'));
-		$eqLogic->setConfiguration('widgetHeight', init('height'));
-		$eqLogic->save(true);
-		ajax::success();
-	}
-
 	if (init('action') == 'getTargetHtml') {
 		$eqLogicIds = json_decode(init('eqLogicIds'), true);
 		$cmdIds = json_decode(init('cmdIds'), true);
@@ -70,34 +59,6 @@ try {
 		}
 
 		ajax::success($result);
-	}
-
-	if (init('action') == 'uploadImage') {
-		if (!isset($_FILES['file'])) {
-			throw new Exception(__('Aucun fichier reçu', __FILE__));
-		}
-		$file = $_FILES['file'];
-		// Vérifier le type MIME
-		$allowedTypes = array('image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'image/webp');
-		if (!in_array($file['type'], $allowedTypes)) {
-			throw new Exception(__('Type de fichier non autorisé. Formats acceptés : PNG, JPG, GIF, SVG, WebP', __FILE__));
-		}
-		// Dossier de destination
-		$uploadDir = __DIR__ . '/../../../../data/img/JeeModale';
-		if (!is_dir($uploadDir)) {
-			mkdir($uploadDir, 0775, true);
-		}
-		// Nom de fichier sécurisé
-		$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-		$safeName = 'jeeModale_' . time() . '_' . mt_rand(1000, 9999) . '.' . $ext;
-		$destPath = $uploadDir . '/' . $safeName;
-
-		if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-			throw new Exception(__('Erreur lors de la copie du fichier', __FILE__));
-		}
-		// Retourner le chemin relatif accessible via le navigateur
-		$webPath = 'data/img/JeeModale/' . $safeName;
-		ajax::success($webPath);
 	}
 
 	throw new Exception(__('Aucune méthode correspondante à', __FILE__) . ' : ' . init('action'));

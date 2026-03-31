@@ -40,13 +40,17 @@ class JeeModale extends eqLogic {
 		}
 		$version = jeedom::versionAlias($_version);
 
-		$iconClass = $this->getConfiguration('iconClass', 'fas fa-window-maximize');
-		$customImage = $this->getConfiguration('customImage', '');
-		$widgetWidth = intval($this->getConfiguration('widgetWidth', 120));
-		$widgetHeight = intval($this->getConfiguration('widgetHeight', 120));
-		if ($widgetWidth < 40) $widgetWidth = 120;
-		if ($widgetHeight < 40) $widgetHeight = 120;
+		// Icône ou image : HTML brut stocké par jeedomUtils.chooseIcon
+		$widgetIconHtml = $this->getConfiguration('widgetIconHtml', '');
+		if (empty($widgetIconHtml)) {
+			$widgetIconHtml = '<i class="fas fa-window-maximize" style="font-size:2.5em;"></i>';
+		}
 
+		// Dimensions de la modale
+		$modalWidth = intval($this->getConfiguration('modalWidth', 0));
+		$modalHeight = intval($this->getConfiguration('modalHeight', 0));
+
+		// Collecter les IDs cibles
 		$targetEqLogics = array();
 		$targetCmds = array();
 		foreach ($this->getCmd() as $cmd) {
@@ -65,36 +69,25 @@ class JeeModale extends eqLogic {
 		$jsonCmds = json_encode($targetCmds);
 		$escapedName = htmlspecialchars($this->getName(), ENT_QUOTES, 'UTF-8');
 
-		if (!empty($customImage)) {
-			$iconHtml = '<img src="' . htmlspecialchars($customImage, ENT_QUOTES, 'UTF-8') . '" style="max-width:80%;max-height:80%;object-fit:contain;">';
-		} else {
-			$iconHtml = '<i class="' . htmlspecialchars($iconClass, ENT_QUOTES, 'UTF-8') . '" style="font-size:2.5em;"></i>';
-		}
-
+		// ---- Widget HTML ----
 		$html = '<div class="eqLogic eqLogic-widget" data-eqLogic_id="' . $eqId . '"';
 		$html .= ' data-eqType="JeeModale"';
 		$html .= ' data-version="' . $version . '"';
-		$html .= ' style="width:' . $widgetWidth . 'px;height:' . $widgetHeight . 'px;position:relative;overflow:hidden;"';
+		$html .= ' style="position:relative;overflow:hidden;"';
 		$html .= '>';
-
-		$html .= '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;padding:5px;box-sizing:border-box;cursor:pointer;"';
+		$html .= '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60px;padding:8px;box-sizing:border-box;cursor:pointer;"';
 		$html .= ' onclick="jeeModale_openModal(' . $eqId . ')">';
-		$html .= $iconHtml;
-		$html .= '<span style="font-size:0.85em;margin-top:5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">' . $escapedName . '</span>';
+		$html .= '<div style="font-size:1em;">' . $widgetIconHtml . '</div>';
+		$html .= '<span style="font-size:0.85em;margin-top:4px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">' . $escapedName . '</span>';
+		$html .= '</div>';
 		$html .= '</div>';
 
-		$html .= '<div class="jeeModale-resize-handle" style="position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;opacity:0.4;"';
-		$html .= ' onmousedown="jeeModale_startResize(event,' . $eqId . ')">';
-		$html .= '<svg viewBox="0 0 14 14" width="14" height="14"><line x1="10" y1="14" x2="14" y2="10" stroke="gray" stroke-width="1.5"/><line x1="6" y1="14" x2="14" y2="6" stroke="gray" stroke-width="1.5"/><line x1="2" y1="14" x2="14" y2="2" stroke="gray" stroke-width="1.5"/></svg>';
-		$html .= '</div>';
-
-		$html .= '</div>';
-
-		// JS inline
+		// ---- JS inline ----
 		$html .= '<script type="text/javascript">';
 		$html .= 'if(typeof window._jeeModaleData==="undefined"){window._jeeModaleData={};}';
-		$html .= 'window._jeeModaleData[' . $eqId . ']={eqLogics:' . $jsonEqLogics . ',cmds:' . $jsonCmds . ',name:"' . addslashes($this->getName()) . '"};';
+		$html .= 'window._jeeModaleData[' . $eqId . ']={eqLogics:' . $jsonEqLogics . ',cmds:' . $jsonCmds . ',name:"' . addslashes($this->getName()) . '",modalWidth:' . ($modalWidth > 0 ? $modalWidth : 0) . ',modalHeight:' . ($modalHeight > 0 ? $modalHeight : 0) . '};';
 
+		// Fonction d'ouverture de modale
 		$html .= 'if(typeof jeeModale_openModal==="undefined"){';
 		$html .= 'window.jeeModale_openModal=function(eqId){';
 		$html .= '  var d=window._jeeModaleData[eqId];if(!d)return;';
@@ -115,37 +108,24 @@ class JeeModale extends eqLogic {
 		$html .= '        html+="</div>";';
 		$html .= '      }';
 		$html .= '      html+="</div>";';
+		$html .= '      var dlgOpts={modal:true,';
+		$html .= '        close:function(){$(this).dialog("destroy").remove();}';
+		$html .= '      };';
+		// Dimensions de la modale configurées par l'utilisateur
+		$html .= '      if(d.modalWidth>0){dlgOpts.width=d.modalWidth;}else{dlgOpts.width=Math.min(800,$(window).width()*0.9);}';
+		$html .= '      if(d.modalHeight>0){dlgOpts.height=d.modalHeight;}else{dlgOpts.height="auto";}';
+		$html .= '      dlgOpts.open=function(){';
+		$html .= '        try{$(this).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
+		$html .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(this));}}catch(e){}';
+		$html .= '      };';
 		$html .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'>"+html+"</div>");';
 		$html .= '      $("body").append($dlg);';
-		$html .= '      $dlg.dialog({modal:true,width:Math.min(800,$(window).width()*0.9),height:"auto",';
-		$html .= '        close:function(){$(this).dialog("destroy").remove();},';
-		$html .= '        open:function(){';
-		$html .= '          try{$(this).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
-		$html .= '          try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(this));}}catch(e){}';
-		$html .= '        }';
-		$html .= '      });';
+		$html .= '      $dlg.dialog(dlgOpts);';
 		$html .= '    },';
 		$html .= '    error:function(){alert("Erreur lors du chargement de la modale");}';
 		$html .= '  });';
 		$html .= '};';
 		$html .= '}';
-
-		$html .= 'if(typeof jeeModale_startResize==="undefined"){';
-		$html .= 'window.jeeModale_startResize=function(e,eqId){';
-		$html .= '  e.preventDefault();e.stopPropagation();';
-		$html .= '  var $w=$(".eqLogic-widget[data-eqLogic_id=\'"+eqId+"\']");';
-		$html .= '  var sX=e.pageX,sY=e.pageY,sW=$w.outerWidth(),sH=$w.outerHeight();';
-		$html .= '  function mv(e){$w.css({width:Math.max(60,sW+(e.pageX-sX))+"px",height:Math.max(60,sH+(e.pageY-sY))+"px"});}';
-		$html .= '  function up(){';
-		$html .= '    $(document).off("mousemove.jmResize mouseup.jmResize");';
-		$html .= '    $.ajax({type:"POST",url:"plugins/JeeModale/core/ajax/JeeModale.ajax.php",';
-		$html .= '      data:{action:"saveWidgetSize",id:eqId,width:Math.round($w.outerWidth()),height:Math.round($w.outerHeight()),jeedom_token:JEEDOM_AJAX_TOKEN},';
-		$html .= '      dataType:"json"});';
-		$html .= '  }';
-		$html .= '  $(document).on("mousemove.jmResize",mv).on("mouseup.jmResize",up);';
-		$html .= '};';
-		$html .= '}';
-
 		$html .= '</script>';
 
 		return $html;
@@ -153,7 +133,5 @@ class JeeModale extends eqLogic {
 }
 
 class JeeModaleCmd extends cmd {
-
-	public function execute($_options = array()) {
-	}
+	public function execute($_options = array()) {}
 }

@@ -14,7 +14,6 @@
 * along with Jeedom. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* Réorganisation des commandes par drag & drop */
 $('#table_cmd').sortable({
 	axis: 'y',
 	cursor: 'move',
@@ -30,14 +29,13 @@ function _jmCleanName(str) {
 }
 
 /* ========================================================
-   Bouton "Ajouter un équipement cible"
+   Boutons ajout cibles
    ======================================================== */
 $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	jeedom.eqLogic.getSelectModal({}, function (result) {
 		if (!result || !result.id) return
-		var cleanName = _jmCleanName(result.human) || ('Equipement ' + result.id)
 		addCmdToTable({
-			name: cleanName,
+			name: _jmCleanName(result.human) || ('Equipement ' + result.id),
 			type: 'info',
 			subType: 'string',
 			configuration: {
@@ -49,27 +47,17 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	})
 })
 
-/* ========================================================
-   Bouton "Ajouter une commande cible"
-   ======================================================== */
 $('#bt_addTargetCmd').off('click').on('click', function () {
 	jeedom.cmd.getSelectModal({}, function (result) {
 		if (!result) return
-		var cmdId = ''
-		var cmdHuman = ''
+		var cmdId = '', cmdHuman = ''
 		if (typeof result === 'object') {
-			if (result.cmd && result.cmd.id) {
-				cmdId = String(result.cmd.id)
-				cmdHuman = result.human || ''
-			} else if (result.id) {
-				cmdId = String(result.id)
-				cmdHuman = result.human || ''
-			}
+			if (result.cmd && result.cmd.id) { cmdId = String(result.cmd.id); cmdHuman = result.human || '' }
+			else if (result.id) { cmdId = String(result.id); cmdHuman = result.human || '' }
 		}
 		if (!cmdId) return
-		var cleanName = _jmCleanName(cmdHuman) || ('Commande ' + cmdId)
 		addCmdToTable({
-			name: cleanName,
+			name: _jmCleanName(cmdHuman) || ('Commande ' + cmdId),
 			type: 'info',
 			subType: 'string',
 			configuration: {
@@ -82,93 +70,37 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Sélecteur d'icône — jeedomUtils.chooseIcon (Jeedom 4.4+)
+   Sélecteur icône/image — jeedomUtils.chooseIcon
+   Gère les deux : retourne <i class="..."> OU <img src="...">
+   On stocke le HTML brut dans configuration.widgetIconHtml
    ======================================================== */
-$('#bt_chooseIcon').off('click').on('click', function () {
-	jeedomUtils.chooseIcon(function (_icon) {
-		// _icon = '<i class="fas fa-home"></i>'
-		if (!_icon) return
-		var match = _icon.match(/class="([^"]+)"/)
-		if (match && match[1]) {
-			$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
-			$('#jeeModale-icon-preview-inline').html('<i class="' + match[1] + '"></i>')
-		}
+$('#bt_chooseWidgetIcon').off('click').on('click', function () {
+	jeedomUtils.chooseIcon(function (_iconHtml) {
+		if (!_iconHtml) return
+		$('.eqLogicAttr[data-l2key="widgetIconHtml"]').value(_iconHtml)
+		$('#jeeModale-icon-preview').html(_iconHtml)
 	})
 })
 
-/* ========================================================
-   Upload d'image — input file natif + AJAX vers le plugin
-   ======================================================== */
-$('#bt_uploadImage').off('click').on('click', function () {
-	$('#in_uploadImageFile').click()
+$('#bt_clearWidgetIcon').off('click').on('click', function () {
+	$('.eqLogicAttr[data-l2key="widgetIconHtml"]').value('')
+	$('#jeeModale-icon-preview').html('')
 })
 
-$('#in_uploadImageFile').off('change').on('change', function () {
-	var fileInput = this
-	if (!fileInput.files || fileInput.files.length === 0) return
-	var file = fileInput.files[0]
-	var formData = new FormData()
-	formData.append('action', 'uploadImage')
-	formData.append('file', file)
-	formData.append('jeedom_token', JEEDOM_AJAX_TOKEN)
-
-	$.ajax({
-		type: 'POST',
-		url: 'plugins/JeeModale/core/ajax/JeeModale.ajax.php',
-		data: formData,
-		processData: false,
-		contentType: false,
-		dataType: 'json',
-		success: function (data) {
-			if (data.state !== 'ok') {
-				$('#div_alert').showAlert({ message: data.result, level: 'danger' })
-				return
-			}
-			var imagePath = data.result
-			$('.eqLogicAttr[data-l2key="customImage"]').value(imagePath).trigger('change')
-			$('#jeeModale-image-preview').attr('src', imagePath).show()
-			$('#div_alert').showAlert({ message: '{{Image téléchargée avec succès}}', level: 'success' })
-		},
-		error: function () {
-			$('#div_alert').showAlert({ message: '{{Erreur lors du téléchargement}}', level: 'danger' })
-		}
-	})
-	// Reset pour pouvoir re-sélectionner le même fichier
-	fileInput.value = ''
-})
-
-$('#bt_clearImage').off('click').on('click', function () {
-	$('.eqLogicAttr[data-l2key="customImage"]').value('').trigger('change')
-	$('#jeeModale-image-preview').attr('src', '').hide()
-})
-
-/* ========================================================
-   Mise à jour des aperçus au chargement d'un équipement
-   ======================================================== */
+/* Mise à jour de l'aperçu au chargement */
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
 	setTimeout(function () {
-		var iconClass = $('.eqLogicAttr[data-l2key="iconClass"]').value() || 'fas fa-window-maximize'
-		$('#jeeModale-icon-preview-inline').html('<i class="' + iconClass + '"></i>')
-
-		var customImage = $('.eqLogicAttr[data-l2key="customImage"]').value() || ''
-		if (customImage !== '') {
-			$('#jeeModale-image-preview').attr('src', customImage).show()
-		} else {
-			$('#jeeModale-image-preview').attr('src', '').hide()
-		}
+		var iconHtml = $('.eqLogicAttr[data-l2key="widgetIconHtml"]').value() || ''
+		$('#jeeModale-icon-preview').html(iconHtml)
 	}, 300)
 })
 
 /* ========================================================
-   Affichage des commandes dans le tableau
+   addCmdToTable
    ======================================================== */
 function addCmdToTable(_cmd) {
-	if (!isset(_cmd)) {
-		var _cmd = { configuration: {} }
-	}
-	if (!isset(_cmd.configuration)) {
-		_cmd.configuration = {}
-	}
+	if (!isset(_cmd)) { var _cmd = { configuration: {} } }
+	if (!isset(_cmd.configuration)) { _cmd.configuration = {} }
 	if (!_cmd.type) _cmd.type = 'info'
 	if (!_cmd.subType) _cmd.subType = 'string'
 
@@ -177,16 +109,11 @@ function addCmdToTable(_cmd) {
 	var targetId = _cmd.configuration.targetId || ''
 	var targetLabel = targetHuman || (targetType === 'eqLogic' ? 'Equipement #' + targetId : 'Commande #' + targetId)
 	var typeBadge = ''
-	if (targetType === 'eqLogic') {
-		typeBadge = '<span class="label label-success">{{Équipement}}</span>'
-	} else if (targetType === 'cmd') {
-		typeBadge = '<span class="label label-info">{{Commande}}</span>'
-	}
+	if (targetType === 'eqLogic') typeBadge = '<span class="label label-success">{{Équipement}}</span>'
+	else if (targetType === 'cmd') typeBadge = '<span class="label label-info">{{Commande}}</span>'
 
 	var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
-	tr += '<td class="hidden-xs">'
-	tr += '<span class="cmdAttr" data-l1key="id"></span>'
-	tr += '</td>'
+	tr += '<td class="hidden-xs"><span class="cmdAttr" data-l1key="id"></span></td>'
 	tr += '<td>'
 	tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom}}">'
 	tr += '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
@@ -200,9 +127,7 @@ function addCmdToTable(_cmd) {
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetId" style="display:none;">'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetHuman" style="display:none;">'
 	tr += '</td>'
-	tr += '<td>'
-	tr += '<i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove" title="{{Supprimer la commande}}"></i>'
-	tr += '</td>'
+	tr += '<td><i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove" title="{{Supprimer la commande}}"></i></td>'
 	tr += '</tr>'
 
 	$('#table_cmd tbody').append(tr)
@@ -218,15 +143,11 @@ function addCmdToTable(_cmd) {
 			jeedom.cmd.changeType(tr, init(_cmd.subType))
 			tr.find('.type').hide()
 			tr.find('.subType').hide()
-
 			var fHuman = tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
 			var fId = tr.find('.cmdAttr[data-l2key="targetId"]').value()
 			var fType = tr.find('.cmdAttr[data-l2key="targetType"]').value()
-			if (fHuman) {
-				tr.find('.jeeModale-target-label').text(fHuman)
-			} else if (fId) {
-				tr.find('.jeeModale-target-label').text((fType === 'eqLogic' ? 'Equipement #' : 'Commande #') + fId)
-			}
+			if (fHuman) tr.find('.jeeModale-target-label').text(fHuman)
+			else if (fId) tr.find('.jeeModale-target-label').text((fType === 'eqLogic' ? 'Equipement #' : 'Commande #') + fId)
 		}
 	})
 }
