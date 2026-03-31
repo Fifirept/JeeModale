@@ -36,7 +36,7 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 			subType: 'string',
 			configuration: {
 				targetType: 'eqLogic',
-				targetId: result.id,
+				targetId: String(result.id),
 				targetHuman: result.human || ''
 			}
 		}
@@ -56,7 +56,7 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 			subType: 'string',
 			configuration: {
 				targetType: 'cmd',
-				targetId: result.id,
+				targetId: String(result.id),
 				targetHuman: result.human || ''
 			}
 		}
@@ -65,17 +65,28 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Sélecteur d'icône
+   Sélecteur d'icône — API Jeedom 4.x
+   Utilise la modale standard #mod_selectIcon
    ======================================================== */
 $('#bt_chooseIcon').off('click').on('click', function () {
-	var currentIcon = $('.eqLogicAttr[data-l2key="iconClass"]').value()
-	jeedom.chooseIcon(function (_icon) {
-		// _icon est du HTML type <i class="fas fa-home"></i>
+	var _cb = function (_icon) {
+		// _icon = '<i class="fas fa-home"></i>' ou similaire
 		var match = _icon.match(/class="([^"]+)"/)
 		if (match && match[1]) {
 			$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
 		}
-	})
+	}
+	// Jeedom 4.4+ : jeedomUtils.chooseIcon
+	if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.chooseIcon === 'function') {
+		jeedomUtils.chooseIcon(_cb)
+	} else {
+		// Jeedom 4.2-4.3 : modale #mod_selectIcon
+		$('#mod_selectIcon').modal('show')
+		$('#mod_selectIcon').off('select').one('select', function (_e, _icon) {
+			_cb(_icon)
+			$('#mod_selectIcon').modal('hide')
+		})
+	}
 })
 
 /* ========================================================
@@ -94,15 +105,13 @@ function updateIconPreview() {
 	$('#jeeModale-icon-preview').html(previewHtml)
 }
 
-$('.eqLogicAttr[data-l2key="iconClass"]').off('change keyup').on('change keyup', updateIconPreview)
-$('.eqLogicAttr[data-l2key="iconColor"]').off('change input').on('change input', updateIconPreview)
-$('.eqLogicAttr[data-l2key="customImage"]').off('change keyup').on('change keyup', updateIconPreview)
+$(document).off('change keyup', '.eqLogicAttr[data-l2key="iconClass"]').on('change keyup', '.eqLogicAttr[data-l2key="iconClass"]', updateIconPreview)
+$(document).off('change input', '.eqLogicAttr[data-l2key="iconColor"]').on('change input', '.eqLogicAttr[data-l2key="iconColor"]', updateIconPreview)
+$(document).off('change keyup', '.eqLogicAttr[data-l2key="customImage"]').on('change keyup', '.eqLogicAttr[data-l2key="customImage"]', updateIconPreview)
 
-/* ========================================================
-   Mise à jour du preview lors du chargement d'un équipement
-   ======================================================== */
+/* Mise à jour du preview au chargement d'un équipement */
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
-	setTimeout(updateIconPreview, 200)
+	setTimeout(updateIconPreview, 300)
 })
 
 /* ========================================================
@@ -122,7 +131,9 @@ function addCmdToTable(_cmd) {
 	var targetLabel = targetHuman || (targetType === 'eqLogic' ? 'Équipement #' + targetId : 'Commande #' + targetId)
 	var typeBadge = targetType === 'eqLogic'
 		? '<span class="label label-success">{{Équipement}}</span>'
-		: '<span class="label label-info">{{Commande}}</span>'
+		: (targetType === 'cmd'
+			? '<span class="label label-info">{{Commande}}</span>'
+			: '<span class="label label-default">?</span>')
 
 	var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
 	tr += '<td class="hidden-xs">'
@@ -130,14 +141,14 @@ function addCmdToTable(_cmd) {
 	tr += '</td>'
 	tr += '<td>'
 	tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom}}">'
-	tr += '<input class="cmdAttr" data-l1key="type" style="display:none;">'
-	tr += '<input class="cmdAttr" data-l1key="subType" style="display:none;">'
+	tr += '<input class="cmdAttr" data-l1key="type" value="info" style="display:none;">'
+	tr += '<input class="cmdAttr" data-l1key="subType" value="string" style="display:none;">'
 	tr += '</td>'
 	tr += '<td>' + typeBadge
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetType" style="display:none;">'
 	tr += '</td>'
 	tr += '<td>'
-	tr += '<span>' + targetLabel + '</span>'
+	tr += '<span class="jeeModale-target-label">' + targetLabel + '</span>'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetId" style="display:none;">'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetHuman" style="display:none;">'
 	tr += '</td>'
@@ -149,119 +160,14 @@ function addCmdToTable(_cmd) {
 	$('#table_cmd tbody').append(tr)
 	var $tr = $('#table_cmd tbody tr').last()
 	$tr.setValues(_cmd, '.cmdAttr')
-}
 
-/* ========================================================
-   Widget dashboard : clic → ouverture modale
-   Redimensionnement → sauvegarde AJAX
-   ======================================================== */
-if (typeof jeedomUtils !== 'undefined') {
-	// Écouter l'événement post-render des widgets sur le dashboard
-	$('body').off('click.jeeModaleWidget').on('click.jeeModaleWidget', '.eqLogic-widget[data-eqType="JeeModale"] .jeeModale-widget-inner', function (e) {
-		e.preventDefault()
-		e.stopPropagation()
-		var $widget = $(this).closest('.eqLogic-widget')
-		var eqId = $widget.data('eqlogic_id')
-		var targetEqLogics = $widget.data('target-eqlogics') || []
-		var targetCmds = $widget.data('target-cmds') || []
-
-		if (targetEqLogics.length === 0 && targetCmds.length === 0) {
-			$('#div_alert').showAlert({ message: '{{Aucune cible configurée pour ce JeeModale}}', level: 'warning' })
-			return
-		}
-
-		// Appel AJAX pour récupérer le HTML des cibles
-		$.ajax({
-			type: 'POST',
-			url: 'plugins/JeeModale/core/ajax/JeeModale.ajax.php',
-			data: {
-				action: 'getTargetHtml',
-				eqLogicIds: JSON.stringify(targetEqLogics),
-				cmdIds: JSON.stringify(targetCmds),
-				jeedom_token: JEEDOM_AJAX_TOKEN
-			},
-			dataType: 'json',
-			success: function (data) {
-				if (data.state !== 'ok') {
-					$('#div_alert').showAlert({ message: data.result, level: 'danger' })
-					return
-				}
-				var items = data.result
-				var modalContent = '<div class="jeeModale-modal-content" style="padding:10px;">'
-				for (var i = 0; i < items.length; i++) {
-					modalContent += '<div class="jeeModale-modal-item" style="margin-bottom:10px;cursor:move;" data-item-index="' + i + '">'
-					modalContent += items[i].html
-					modalContent += '</div>'
-				}
-				modalContent += '</div>'
-
-				// Ouvrir la modale jQuery UI
-				var $dialog = $('<div title="' + $widget.find('.jeeModale-widget-inner span').text() + '">' + modalContent + '</div>')
-				$dialog.dialog({
-					modal: true,
-					width: 'auto',
-					minWidth: 400,
-					maxWidth: $(window).width() * 0.9,
-					maxHeight: $(window).height() * 0.85,
-					close: function () {
-						$(this).dialog('destroy').remove()
-					},
-					open: function () {
-						// Rendre les items déplaçables dans la modale
-						$(this).find('.jeeModale-modal-content').sortable({
-							items: '.jeeModale-modal-item',
-							cursor: 'move',
-							placeholder: 'ui-state-highlight',
-							tolerance: 'pointer'
-						})
-						// Initialiser les widgets Jeedom dans la modale
-						if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.initTooltips === 'function') {
-							jeedomUtils.initTooltips($(this))
-						}
-					}
-				})
-			},
-			error: function (error) {
-				$('#div_alert').showAlert({ message: '{{Erreur lors du chargement de la modale}}', level: 'danger' })
-			}
-		})
-	})
-
-	/* Redimensionnement du widget */
-	$('body').off('mousedown.jeeModaleResize').on('mousedown.jeeModaleResize', '.jeeModale-resize-handle', function (e) {
-		e.preventDefault()
-		e.stopPropagation()
-		var $widget = $(this).closest('.eqLogic-widget')
-		var startX = e.pageX
-		var startY = e.pageY
-		var startW = $widget.outerWidth()
-		var startH = $widget.outerHeight()
-		var eqId = $widget.data('eqlogic_id')
-
-		function onMouseMove(e) {
-			var newW = Math.max(60, startW + (e.pageX - startX))
-			var newH = Math.max(60, startH + (e.pageY - startY))
-			$widget.css({ width: newW + 'px', height: newH + 'px' })
-		}
-		function onMouseUp(e) {
-			$(document).off('mousemove.jeeModaleResize mouseup.jeeModaleResize')
-			var finalW = $widget.outerWidth()
-			var finalH = $widget.outerHeight()
-			// Sauvegarder via AJAX
-			$.ajax({
-				type: 'POST',
-				url: 'plugins/JeeModale/core/ajax/JeeModale.ajax.php',
-				data: {
-					action: 'saveWidgetSize',
-					id: eqId,
-					width: Math.round(finalW),
-					height: Math.round(finalH),
-					jeedom_token: JEEDOM_AJAX_TOKEN
-				},
-				dataType: 'json'
-			})
-		}
-		$(document).on('mousemove.jeeModaleResize', onMouseMove)
-		$(document).on('mouseup.jeeModaleResize', onMouseUp)
-	})
+	// Mettre à jour le label affiché après setValues
+	var finalHuman = $tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
+	var finalId = $tr.find('.cmdAttr[data-l2key="targetId"]').value()
+	var finalType = $tr.find('.cmdAttr[data-l2key="targetType"]').value()
+	if (finalHuman) {
+		$tr.find('.jeeModale-target-label').text(finalHuman)
+	} else if (finalId) {
+		$tr.find('.jeeModale-target-label').text((finalType === 'eqLogic' ? 'Équipement #' : 'Commande #') + finalId)
+	}
 }
