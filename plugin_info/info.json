@@ -1,0 +1,26 @@
+{
+	"id": "JeeModale",
+	"name": "JeeModale",
+	"pluginVersion": "0.1",
+	"description": {
+		"fr_FR": "Affichage d'un équipement ou d'une commande sous forme de modale"
+	},
+	"licence": "AGPL",
+	"author": "Philippe",
+	"require": "4.5",
+	"category": "programming",
+	"hasDependency": false,
+	"hasOwnDeamon": false,
+	"maxDependancyInstallTime": 0,
+	"language": [
+		"fr_FR"
+	],
+	"compatibility": [
+		"smart",
+		"luna",
+		"atlas",
+		"rpi",
+		"docker",
+		"diy"
+	]
+}
