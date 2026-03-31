@@ -146,7 +146,6 @@ class JeeModale extends eqLogic {
 		$html .= '        html+="</div>";';
 		$html .= '      }';
 		$html .= '      html+="</div>";';
-		// Utiliser la modale bootstrap Jeedom
 		$html .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'>"+html+"</div>");';
 		$html .= '      $("body").append($dlg);';
 		$html .= '      $dlg.dialog({modal:true,width:Math.min(800,$(window).width()*0.9),height:"auto",';
@@ -189,10 +188,7 @@ class JeeModale extends eqLogic {
 
 class JeeModaleCmd extends cmd {
 
-	public function dontRemoveCmd() {
-		return true;
-	}
-
+	// Exécution d'une commande (pas d'action réelle, ce sont des références)
 	public function execute($_options = array()) {
 	}
 

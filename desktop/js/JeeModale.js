@@ -46,18 +46,30 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 
 /* ========================================================
    Bouton "Ajouter une commande" — browse sélecteur Jeedom
+   jeedom.cmd.getSelectModal retourne {id: "123", human: "[Objet][Eq][Cmd]", ...}
+   Le format du callback peut varier : result peut être un objet ou
+   directement contenir cmd_id. On gère les deux cas.
    ======================================================== */
 $('#bt_addTargetCmd').off('click').on('click', function () {
 	jeedom.cmd.getSelectModal({}, function (result) {
-		if (!result || !result.id) return
+		var cmdId = ''
+		var cmdHuman = ''
+		if (typeof result === 'object') {
+			cmdId = result.cmd_id || result.id || ''
+			cmdHuman = result.human || ''
+		} else {
+			// result peut être directement l'id
+			cmdId = String(result)
+		}
+		if (!cmdId || cmdId === '' || cmdId === 'undefined') return
 		var newCmd = {
-			name: result.human || ('Commande #' + result.id),
+			name: cmdHuman || ('Commande #' + cmdId),
 			type: 'info',
 			subType: 'string',
 			configuration: {
 				targetType: 'cmd',
-				targetId: String(result.id),
-				targetHuman: result.human || ''
+				targetId: String(cmdId),
+				targetHuman: cmdHuman
 			}
 		}
 		addCmdToTable(newCmd)
@@ -66,21 +78,17 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur d'icône — API Jeedom 4.x
-   Utilise la modale standard #mod_selectIcon
    ======================================================== */
 $('#bt_chooseIcon').off('click').on('click', function () {
 	var _cb = function (_icon) {
-		// _icon = '<i class="fas fa-home"></i>' ou similaire
 		var match = _icon.match(/class="([^"]+)"/)
 		if (match && match[1]) {
 			$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
 		}
 	}
-	// Jeedom 4.4+ : jeedomUtils.chooseIcon
 	if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.chooseIcon === 'function') {
 		jeedomUtils.chooseIcon(_cb)
 	} else {
-		// Jeedom 4.2-4.3 : modale #mod_selectIcon
 		$('#mod_selectIcon').modal('show')
 		$('#mod_selectIcon').off('select').one('select', function (_e, _icon) {
 			_cb(_icon)
@@ -109,13 +117,15 @@ $(document).off('change keyup', '.eqLogicAttr[data-l2key="iconClass"]').on('chan
 $(document).off('change input', '.eqLogicAttr[data-l2key="iconColor"]').on('change input', '.eqLogicAttr[data-l2key="iconColor"]', updateIconPreview)
 $(document).off('change keyup', '.eqLogicAttr[data-l2key="customImage"]').on('change keyup', '.eqLogicAttr[data-l2key="customImage"]', updateIconPreview)
 
-/* Mise à jour du preview au chargement d'un équipement */
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
 	setTimeout(updateIconPreview, 300)
 })
 
 /* ========================================================
    Affichage des commandes dans le tableau
+   IMPORTANT : les champs type et subType doivent avoir une
+   valeur par défaut ET être correctement remplis par setValues.
+   On force les valeurs après setValues pour être sûr.
    ======================================================== */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) {
@@ -123,6 +133,13 @@ function addCmdToTable(_cmd) {
 	}
 	if (!isset(_cmd.configuration)) {
 		_cmd.configuration = {}
+	}
+	// Forcer type/subType si absents
+	if (!_cmd.type || _cmd.type === '') {
+		_cmd.type = 'info'
+	}
+	if (!_cmd.subType || _cmd.subType === '') {
+		_cmd.subType = 'string'
 	}
 
 	var targetType = _cmd.configuration.targetType || '?'
@@ -141,8 +158,9 @@ function addCmdToTable(_cmd) {
 	tr += '</td>'
 	tr += '<td>'
 	tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom}}">'
-	tr += '<input class="cmdAttr" data-l1key="type" value="info" style="display:none;">'
-	tr += '<input class="cmdAttr" data-l1key="subType" value="string" style="display:none;">'
+	// type et subType en champs cachés — Jeedom en a besoin pour sauvegarder
+	tr += '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
+	tr += '<span class="subType" subType="' + init(_cmd.subType) + '"></span>'
 	tr += '</td>'
 	tr += '<td>' + typeBadge
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetType" style="display:none;">'
@@ -160,6 +178,11 @@ function addCmdToTable(_cmd) {
 	$('#table_cmd tbody').append(tr)
 	var $tr = $('#table_cmd tbody tr').last()
 	$tr.setValues(_cmd, '.cmdAttr')
+	jeedom.cmd.changeType($tr, init(_cmd.subType))
+
+	// Masquer les sélecteurs type/subType (on ne veut pas que l'utilisateur les modifie)
+	$tr.find('.type').hide()
+	$tr.find('.subType').hide()
 
 	// Mettre à jour le label affiché après setValues
 	var finalHuman = $tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
