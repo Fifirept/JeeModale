@@ -90,11 +90,9 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<select id="sel_object" class="eqLogicAttr form-control" data-l1key="object_id">
 										<option value="">{{Aucun}}</option>
 										<?php
-										$options = '';
 										foreach ((jeeObject::buildTree(null, false)) as $object) {
-											$options .= '<option value="' . $object->getId() . '">' . str_repeat('&nbsp;&nbsp;', $object->getConfiguration('parentNumber')) . $object->getName() . '</option>';
+											echo '<option value="' . $object->getId() . '">' . str_repeat('&nbsp;&nbsp;', $object->getConfiguration('parentNumber')) . $object->getName() . '</option>';
 										}
-										echo $options;
 										?>
 									</select>
 								</div>
@@ -121,30 +119,35 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 							<legend><i class="fas fa-cogs"></i> {{Apparence du widget}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Classe d'icône}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Classe FontAwesome, ex: fas fa-tv, fas fa-home}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Icône du widget}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Cliquez sur l'icône à droite pour en choisir une}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<div class="input-group">
 										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="iconClass" placeholder="fas fa-window-maximize">
 										<span class="input-group-btn">
-											<a class="btn btn-default cursor" id="bt_chooseIcon" title="{{Choisir une icône}}"><i class="fas fa-icons"></i></a>
+											<a class="btn btn-default" id="bt_chooseIcon" title="{{Choisir une icône}}"><i class="fas fa-flag"></i></a>
 										</span>
 									</div>
 								</div>
 							</div>
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Couleur de l'icône}}</label>
-								<div class="col-sm-6">
+								<div class="col-sm-3">
 									<input type="color" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconColor" value="#0076b6" style="width:60px;padding:2px;">
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Image personnalisée (URL)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{URL vers une image (remplace l'icône)}}"></i></sup>
+								<label class="col-sm-4 control-label">{{Image personnalisée}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Sélectionnez une image (remplace l'icône). Laisser vide pour utiliser l'icône.}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
-									<input type="text" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="customImage" placeholder="{{Laisser vide pour utiliser l'icône}}">
+									<div class="input-group">
+										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="customImage" placeholder="{{Laisser vide pour utiliser l'icône}}">
+										<span class="input-group-btn">
+											<a class="btn btn-default" id="bt_selectImage" title="{{Choisir une image}}"><i class="fas fa-image"></i></a>
+										</span>
+									</div>
 								</div>
 							</div>
 							<div class="form-group">
@@ -171,7 +174,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Aperçu de l'icône}}</label>
+								<label class="col-sm-4 control-label">{{Aperçu}}</label>
 								<div class="col-sm-6">
 									<div id="jeeModale-icon-preview" style="width:120px;height:120px;border:1px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f8f8f8;">
 										<i class="fas fa-window-maximize" style="font-size:2.5em;color:#0076b6;"></i>
@@ -196,7 +199,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							<tr>
 								<th class="hidden-xs" style="min-width:50px;width:70px;">ID</th>
 								<th style="min-width:200px;width:300px;">{{Nom}}</th>
-								<th style="min-width:150px;">{{Type de cible}}</th>
+								<th style="min-width:100px;width:120px;">{{Type cible}}</th>
 								<th style="min-width:200px;">{{Cible}}</th>
 								<th style="min-width:80px;width:150px;">{{Actions}}</th>
 							</tr>

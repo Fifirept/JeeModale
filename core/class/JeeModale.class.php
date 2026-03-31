@@ -121,7 +121,7 @@ class JeeModale extends eqLogic {
 		// ---- JS inline (exécuté sur dashboard/design) ----
 		$html .= '<script type="text/javascript">';
 
-		// Enregistrer les données cibles pour cet équipement
+		// Données cibles pour cet équipement
 		$html .= 'if(typeof window._jeeModaleData==="undefined"){window._jeeModaleData={};}';
 		$html .= 'window._jeeModaleData[' . $eqId . ']={eqLogics:' . $jsonEqLogics . ',cmds:' . $jsonCmds . ',name:"' . addslashes($this->getName()) . '"};';
 
@@ -188,7 +188,6 @@ class JeeModale extends eqLogic {
 
 class JeeModaleCmd extends cmd {
 
-	// Exécution d'une commande (pas d'action réelle, ce sont des références)
 	public function execute($_options = array()) {
 	}
 

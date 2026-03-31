@@ -25,7 +25,7 @@ $('#table_cmd').sortable({
 })
 
 /* ========================================================
-   Bouton "Ajouter un équipement" — browse sélecteur Jeedom
+   Bouton "Ajouter un équipement cible"
    ======================================================== */
 $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	jeedom.eqLogic.getSelectModal({}, function (result) {
@@ -45,30 +45,33 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Bouton "Ajouter une commande" — browse sélecteur Jeedom
-   jeedom.cmd.getSelectModal retourne {id: "123", human: "[Objet][Eq][Cmd]", ...}
-   Le format du callback peut varier : result peut être un objet ou
-   directement contenir cmd_id. On gère les deux cas.
+   Bouton "Ajouter une commande cible"
+   jeedom.cmd.getSelectModal callback : result = {human: "#[..]#", cmd: {id:X, ...}}
+   ou parfois result = {id:X, human:"..."}
    ======================================================== */
 $('#bt_addTargetCmd').off('click').on('click', function () {
 	jeedom.cmd.getSelectModal({}, function (result) {
+		if (!result) return
+		// Extraire l'id — le format varie selon la version Jeedom
 		var cmdId = ''
 		var cmdHuman = ''
 		if (typeof result === 'object') {
-			cmdId = result.cmd_id || result.id || ''
-			cmdHuman = result.human || ''
-		} else {
-			// result peut être directement l'id
-			cmdId = String(result)
+			if (result.cmd && result.cmd.id) {
+				cmdId = String(result.cmd.id)
+				cmdHuman = result.human || ''
+			} else if (result.id) {
+				cmdId = String(result.id)
+				cmdHuman = result.human || ''
+			}
 		}
-		if (!cmdId || cmdId === '' || cmdId === 'undefined') return
+		if (!cmdId) return
 		var newCmd = {
 			name: cmdHuman || ('Commande #' + cmdId),
 			type: 'info',
 			subType: 'string',
 			configuration: {
 				targetType: 'cmd',
-				targetId: String(cmdId),
+				targetId: cmdId,
 				targetHuman: cmdHuman
 			}
 		}
@@ -77,24 +80,45 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Sélecteur d'icône — API Jeedom 4.x
+   Sélecteur d'icône pour le widget
+   Utilise la modale Jeedom #mod_selectIcon (standard 4.x)
    ======================================================== */
 $('#bt_chooseIcon').off('click').on('click', function () {
-	var _cb = function (_icon) {
-		var match = _icon.match(/class="([^"]+)"/)
-		if (match && match[1]) {
-			$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
+	var $selectIcon = $('#mod_selectIcon')
+	if ($selectIcon.length === 0) {
+		// Jeedom 4.4+ peut ne pas avoir le mod_selectIcon, tenter jeedomUtils
+		if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.chooseIcon === 'function') {
+			jeedomUtils.chooseIcon(function (_icon) {
+				_applyIcon(_icon)
+			})
 		}
+		return
 	}
-	if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.chooseIcon === 'function') {
-		jeedomUtils.chooseIcon(_cb)
-	} else {
-		$('#mod_selectIcon').modal('show')
-		$('#mod_selectIcon').off('select').one('select', function (_e, _icon) {
-			_cb(_icon)
-			$('#mod_selectIcon').modal('hide')
-		})
+	$selectIcon.modal('show')
+	$selectIcon.off('select').one('select', function (_e, _icon) {
+		_applyIcon(_icon)
+		$selectIcon.modal('hide')
+	})
+})
+
+function _applyIcon(_icon) {
+	// _icon = '<i class="fas fa-home"></i>' ou '<span class="..."></span>'
+	if (!_icon) return
+	var match = _icon.match(/class="([^"]+)"/)
+	if (match && match[1]) {
+		$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
 	}
+}
+
+/* ========================================================
+   Sélecteur d'image — upload via l'API Jeedom
+   ======================================================== */
+$('#bt_selectImage').off('click').on('click', function () {
+	jeedom.selectImage({
+		success: function (_path) {
+			$('.eqLogicAttr[data-l2key="customImage"]').value(_path).trigger('change')
+		}
+	})
 })
 
 /* ========================================================
@@ -113,9 +137,9 @@ function updateIconPreview() {
 	$('#jeeModale-icon-preview').html(previewHtml)
 }
 
-$(document).off('change keyup', '.eqLogicAttr[data-l2key="iconClass"]').on('change keyup', '.eqLogicAttr[data-l2key="iconClass"]', updateIconPreview)
-$(document).off('change input', '.eqLogicAttr[data-l2key="iconColor"]').on('change input', '.eqLogicAttr[data-l2key="iconColor"]', updateIconPreview)
-$(document).off('change keyup', '.eqLogicAttr[data-l2key="customImage"]').on('change keyup', '.eqLogicAttr[data-l2key="customImage"]', updateIconPreview)
+$(document).off('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="iconClass"]').on('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="iconClass"]', updateIconPreview)
+$(document).off('change.jmIcon input.jmIcon', '.eqLogicAttr[data-l2key="iconColor"]').on('change.jmIcon input.jmIcon', '.eqLogicAttr[data-l2key="iconColor"]', updateIconPreview)
+$(document).off('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="customImage"]').on('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="customImage"]', updateIconPreview)
 
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
 	setTimeout(updateIconPreview, 300)
@@ -123,9 +147,8 @@ $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function 
 
 /* ========================================================
    Affichage des commandes dans le tableau
-   IMPORTANT : les champs type et subType doivent avoir une
-   valeur par défaut ET être correctement remplis par setValues.
-   On force les valeurs après setValues pour être sûr.
+   Pattern standard Jeedom avec jeedom.cmd.availableType()
+   + jeedom.eqLogic.buildSelectCmd + jeedom.cmd.changeType
    ======================================================== */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) {
@@ -134,23 +157,20 @@ function addCmdToTable(_cmd) {
 	if (!isset(_cmd.configuration)) {
 		_cmd.configuration = {}
 	}
-	// Forcer type/subType si absents
-	if (!_cmd.type || _cmd.type === '') {
-		_cmd.type = 'info'
-	}
-	if (!_cmd.subType || _cmd.subType === '') {
-		_cmd.subType = 'string'
-	}
+	// Forcer type/subType
+	if (!_cmd.type) _cmd.type = 'info'
+	if (!_cmd.subType) _cmd.subType = 'string'
 
 	var targetType = _cmd.configuration.targetType || '?'
 	var targetHuman = _cmd.configuration.targetHuman || ''
 	var targetId = _cmd.configuration.targetId || ''
 	var targetLabel = targetHuman || (targetType === 'eqLogic' ? 'Équipement #' + targetId : 'Commande #' + targetId)
-	var typeBadge = targetType === 'eqLogic'
-		? '<span class="label label-success">{{Équipement}}</span>'
-		: (targetType === 'cmd'
-			? '<span class="label label-info">{{Commande}}</span>'
-			: '<span class="label label-default">?</span>')
+	var typeBadge = ''
+	if (targetType === 'eqLogic') {
+		typeBadge = '<span class="label label-success">{{Équipement}}</span>'
+	} else if (targetType === 'cmd') {
+		typeBadge = '<span class="label label-info">{{Commande}}</span>'
+	}
 
 	var tr = '<tr class="cmd" data-cmd_id="' + init(_cmd.id) + '">'
 	tr += '<td class="hidden-xs">'
@@ -158,15 +178,15 @@ function addCmdToTable(_cmd) {
 	tr += '</td>'
 	tr += '<td>'
 	tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom}}">'
-	// type et subType en champs cachés — Jeedom en a besoin pour sauvegarder
-	tr += '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
-	tr += '<span class="subType" subType="' + init(_cmd.subType) + '"></span>'
+	// type/subType : pattern standard du template Jeedom
+	tr += '<select class="cmdAttr form-control input-sm" data-l1key="value" style="display:none;margin-top:5px;" title="{{Commande info liée}}">'
+	tr += '<option value="">{{Aucune}}</option>'
+	tr += '</select>'
 	tr += '</td>'
-	tr += '<td>' + typeBadge
-	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetType" style="display:none;">'
-	tr += '</td>'
+	tr += '<td>' + typeBadge + '</td>'
 	tr += '<td>'
 	tr += '<span class="jeeModale-target-label">' + targetLabel + '</span>'
+	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetType" style="display:none;">'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetId" style="display:none;">'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetHuman" style="display:none;">'
 	tr += '</td>'
@@ -176,21 +196,27 @@ function addCmdToTable(_cmd) {
 	tr += '</tr>'
 
 	$('#table_cmd tbody').append(tr)
-	var $tr = $('#table_cmd tbody tr').last()
-	$tr.setValues(_cmd, '.cmdAttr')
-	jeedom.cmd.changeType($tr, init(_cmd.subType))
+	var tr = $('#table_cmd tbody tr').last()
+	jeedom.eqLogic.buildSelectCmd({
+		id: $('.eqLogicAttr[data-l1key=id]').value(),
+		filter: { type: 'info' },
+		error: function (error) {
+			$('#div_alert').showAlert({ message: error.message, level: 'danger' })
+		},
+		success: function (result) {
+			tr.find('.cmdAttr[data-l1key=value]').append(result)
+			tr.setValues(_cmd, '.cmdAttr')
+			jeedom.cmd.changeType(tr, init(_cmd.subType))
 
-	// Masquer les sélecteurs type/subType (on ne veut pas que l'utilisateur les modifie)
-	$tr.find('.type').hide()
-	$tr.find('.subType').hide()
-
-	// Mettre à jour le label affiché après setValues
-	var finalHuman = $tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
-	var finalId = $tr.find('.cmdAttr[data-l2key="targetId"]').value()
-	var finalType = $tr.find('.cmdAttr[data-l2key="targetType"]').value()
-	if (finalHuman) {
-		$tr.find('.jeeModale-target-label').text(finalHuman)
-	} else if (finalId) {
-		$tr.find('.jeeModale-target-label').text((finalType === 'eqLogic' ? 'Équipement #' : 'Commande #') + finalId)
-	}
+			// Mettre à jour le label affiché
+			var fHuman = tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
+			var fId = tr.find('.cmdAttr[data-l2key="targetId"]').value()
+			var fType = tr.find('.cmdAttr[data-l2key="targetType"]').value()
+			if (fHuman) {
+				tr.find('.jeeModale-target-label').text(fHuman)
+			} else if (fId) {
+				tr.find('.jeeModale-target-label').text((fType === 'eqLogic' ? 'Équipement #' : 'Commande #') + fId)
+			}
+		}
+	})
 }
