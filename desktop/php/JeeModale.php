@@ -120,34 +120,32 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							<legend><i class="fas fa-cogs"></i> {{Apparence du widget}}</legend>
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Icône du widget}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Cliquez sur l'icône à droite pour en choisir une}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Cliquez sur le bouton pour choisir une icône}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<div class="input-group">
 										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="iconClass" placeholder="fas fa-window-maximize">
 										<span class="input-group-btn">
-											<a class="btn btn-default" id="bt_chooseIcon" title="{{Choisir une icône}}"><i class="fas fa-flag"></i></a>
+											<a class="btn btn-default" id="bt_chooseIcon" title="{{Choisir une icône}}"><i class="fas fa-flag"></i> {{Icône}}</a>
 										</span>
 									</div>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Couleur de l'icône}}</label>
-								<div class="col-sm-3">
-									<input type="color" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconColor" value="#0076b6" style="width:60px;padding:2px;">
+									<span id="jeeModale-icon-preview-inline" style="font-size:24px;margin-top:5px;display:inline-block;"></span>
 								</div>
 							</div>
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Image personnalisée}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Sélectionnez une image (remplace l'icône). Laisser vide pour utiliser l'icône.}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Télécharger une image pour remplacer l'icône sur le widget}}"></i></sup>
 								</label>
 								<div class="col-sm-6">
 									<div class="input-group">
-										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="customImage" placeholder="{{Laisser vide pour utiliser l'icône}}">
+										<input type="text" class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="customImage" placeholder="{{Laisser vide pour utiliser l'icône}}" id="in_customImage">
 										<span class="input-group-btn">
-											<a class="btn btn-default" id="bt_selectImage" title="{{Choisir une image}}"><i class="fas fa-image"></i></a>
+											<a class="btn btn-default" id="bt_uploadImage" title="{{Envoyer une image}}"><i class="fas fa-upload"></i></a>
+											<a class="btn btn-danger" id="bt_clearImage" title="{{Supprimer l'image}}"><i class="fas fa-times"></i></a>
 										</span>
 									</div>
+									<input type="file" id="in_uploadImageFile" accept="image/*" style="display:none;">
+									<img id="jeeModale-image-preview" src="" style="max-width:80px;max-height:80px;margin-top:5px;display:none;">
 								</div>
 							</div>
 							<div class="form-group">
@@ -171,14 +169,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<label class="col-sm-4 control-label">{{Description}}</label>
 								<div class="col-sm-6">
 									<textarea class="form-control eqLogicAttr autogrow" data-l1key="comment"></textarea>
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Aperçu}}</label>
-								<div class="col-sm-6">
-									<div id="jeeModale-icon-preview" style="width:120px;height:120px;border:1px dashed #ccc;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f8f8f8;">
-										<i class="fas fa-window-maximize" style="font-size:2.5em;color:#0076b6;"></i>
-									</div>
 								</div>
 							</div>
 						</div>

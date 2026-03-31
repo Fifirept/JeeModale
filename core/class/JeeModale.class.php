@@ -24,36 +24,15 @@ class JeeModale extends eqLogic {
 		'custom::layout' => false
 	);
 
-	/*     * *********************Méthodes d'instance************************* */
+	public function preInsert() {}
+	public function postInsert() {}
+	public function preSave() {}
+	public function postSave() {}
+	public function preUpdate() {}
+	public function postUpdate() {}
+	public function preRemove() {}
+	public function postRemove() {}
 
-	public function preInsert() {
-	}
-
-	public function postInsert() {
-	}
-
-	public function preSave() {
-	}
-
-	public function postSave() {
-	}
-
-	public function preUpdate() {
-	}
-
-	public function postUpdate() {
-	}
-
-	public function preRemove() {
-	}
-
-	public function postRemove() {
-	}
-
-	/**
-	 * Génère le widget HTML pour le dashboard/design
-	 * Le JS est inline car desktop/js n'est pas chargé sur le dashboard
-	 */
 	public function toHtml($_version = 'dashboard') {
 		$replace = $this->preToHtml($_version);
 		if (!is_array($replace)) {
@@ -62,14 +41,12 @@ class JeeModale extends eqLogic {
 		$version = jeedom::versionAlias($_version);
 
 		$iconClass = $this->getConfiguration('iconClass', 'fas fa-window-maximize');
-		$iconColor = $this->getConfiguration('iconColor', '#0076b6');
 		$customImage = $this->getConfiguration('customImage', '');
 		$widgetWidth = intval($this->getConfiguration('widgetWidth', 120));
 		$widgetHeight = intval($this->getConfiguration('widgetHeight', 120));
 		if ($widgetWidth < 40) $widgetWidth = 120;
 		if ($widgetHeight < 40) $widgetHeight = 120;
 
-		// Collecter les IDs des équipements et commandes cibles
 		$targetEqLogics = array();
 		$targetCmds = array();
 		foreach ($this->getCmd() as $cmd) {
@@ -88,29 +65,24 @@ class JeeModale extends eqLogic {
 		$jsonCmds = json_encode($targetCmds);
 		$escapedName = htmlspecialchars($this->getName(), ENT_QUOTES, 'UTF-8');
 
-		// Visuel
 		if (!empty($customImage)) {
 			$iconHtml = '<img src="' . htmlspecialchars($customImage, ENT_QUOTES, 'UTF-8') . '" style="max-width:80%;max-height:80%;object-fit:contain;">';
 		} else {
-			$iconHtml = '<i class="' . htmlspecialchars($iconClass, ENT_QUOTES, 'UTF-8') . '" style="font-size:2.5em;color:' . htmlspecialchars($iconColor, ENT_QUOTES, 'UTF-8') . ';"></i>';
+			$iconHtml = '<i class="' . htmlspecialchars($iconClass, ENT_QUOTES, 'UTF-8') . '" style="font-size:2.5em;"></i>';
 		}
 
-		// ---- Construction du HTML ----
 		$html = '<div class="eqLogic eqLogic-widget" data-eqLogic_id="' . $eqId . '"';
 		$html .= ' data-eqType="JeeModale"';
 		$html .= ' data-version="' . $version . '"';
 		$html .= ' style="width:' . $widgetWidth . 'px;height:' . $widgetHeight . 'px;position:relative;overflow:hidden;"';
 		$html .= '>';
 
-		// Zone cliquable
 		$html .= '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%;padding:5px;box-sizing:border-box;cursor:pointer;"';
-		$html .= ' onclick="jeeModale_openModal(' . $eqId . ')"';
-		$html .= '>';
+		$html .= ' onclick="jeeModale_openModal(' . $eqId . ')">';
 		$html .= $iconHtml;
 		$html .= '<span style="font-size:0.85em;margin-top:5px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">' . $escapedName . '</span>';
 		$html .= '</div>';
 
-		// Poignée de redimensionnement
 		$html .= '<div class="jeeModale-resize-handle" style="position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;opacity:0.4;"';
 		$html .= ' onmousedown="jeeModale_startResize(event,' . $eqId . ')">';
 		$html .= '<svg viewBox="0 0 14 14" width="14" height="14"><line x1="10" y1="14" x2="14" y2="10" stroke="gray" stroke-width="1.5"/><line x1="6" y1="14" x2="14" y2="6" stroke="gray" stroke-width="1.5"/><line x1="2" y1="14" x2="14" y2="2" stroke="gray" stroke-width="1.5"/></svg>';
@@ -118,14 +90,11 @@ class JeeModale extends eqLogic {
 
 		$html .= '</div>';
 
-		// ---- JS inline (exécuté sur dashboard/design) ----
+		// JS inline
 		$html .= '<script type="text/javascript">';
-
-		// Données cibles pour cet équipement
 		$html .= 'if(typeof window._jeeModaleData==="undefined"){window._jeeModaleData={};}';
 		$html .= 'window._jeeModaleData[' . $eqId . ']={eqLogics:' . $jsonEqLogics . ',cmds:' . $jsonCmds . ',name:"' . addslashes($this->getName()) . '"};';
 
-		// Fonction d'ouverture de modale (déclarée une seule fois)
 		$html .= 'if(typeof jeeModale_openModal==="undefined"){';
 		$html .= 'window.jeeModale_openModal=function(eqId){';
 		$html .= '  var d=window._jeeModaleData[eqId];if(!d)return;';
@@ -161,7 +130,6 @@ class JeeModale extends eqLogic {
 		$html .= '};';
 		$html .= '}';
 
-		// Fonction de redimensionnement (déclarée une seule fois)
 		$html .= 'if(typeof jeeModale_startResize==="undefined"){';
 		$html .= 'window.jeeModale_startResize=function(e,eqId){';
 		$html .= '  e.preventDefault();e.stopPropagation();';
@@ -182,14 +150,10 @@ class JeeModale extends eqLogic {
 
 		return $html;
 	}
-
-	/*     * **********************Getteur Setteur*************************** */
 }
 
 class JeeModaleCmd extends cmd {
 
 	public function execute($_options = array()) {
 	}
-
-	/*     * **********************Getteur Setteur*************************** */
 }

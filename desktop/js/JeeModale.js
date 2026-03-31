@@ -24,9 +24,6 @@ $('#table_cmd').sortable({
 	forcePlaceholderSize: true
 })
 
-/**
- * Nettoyer un nom pour enlever les caractères spéciaux Jeedom (#[])
- */
 function _jmCleanName(str) {
 	if (!str) return ''
 	return str.replace(/#/g, '').replace(/\[/g, '').replace(/\]/g, '').trim()
@@ -39,7 +36,7 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	jeedom.eqLogic.getSelectModal({}, function (result) {
 		if (!result || !result.id) return
 		var cleanName = _jmCleanName(result.human) || ('Equipement ' + result.id)
-		var newCmd = {
+		addCmdToTable({
 			name: cleanName,
 			type: 'info',
 			subType: 'string',
@@ -48,8 +45,7 @@ $('#bt_addTargetEqLogic').off('click').on('click', function () {
 				targetId: String(result.id),
 				targetHuman: result.human || ''
 			}
-		}
-		addCmdToTable(newCmd)
+		})
 	})
 })
 
@@ -72,7 +68,7 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 		}
 		if (!cmdId) return
 		var cleanName = _jmCleanName(cmdHuman) || ('Commande ' + cmdId)
-		var newCmd = {
+		addCmdToTable({
 			name: cleanName,
 			type: 'info',
 			subType: 'string',
@@ -81,84 +77,90 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 				targetId: cmdId,
 				targetHuman: cmdHuman
 			}
-		}
-		addCmdToTable(newCmd)
+		})
 	})
 })
 
 /* ========================================================
-   Sélecteur d'icône
+   Sélecteur d'icône — jeedomUtils.chooseIcon (Jeedom 4.4+)
    ======================================================== */
 $('#bt_chooseIcon').off('click').on('click', function () {
-	var $selectIcon = $('#mod_selectIcon')
-	if ($selectIcon.length === 0) {
-		if (typeof jeedomUtils !== 'undefined' && typeof jeedomUtils.chooseIcon === 'function') {
-			jeedomUtils.chooseIcon(function (_icon) {
-				_applyIcon(_icon)
-			})
+	jeedomUtils.chooseIcon(function (_icon) {
+		// _icon = '<i class="fas fa-home"></i>'
+		if (!_icon) return
+		var match = _icon.match(/class="([^"]+)"/)
+		if (match && match[1]) {
+			$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
+			$('#jeeModale-icon-preview-inline').html('<i class="' + match[1] + '"></i>')
 		}
-		return
-	}
-	$selectIcon.modal('show')
-	$selectIcon.off('select').one('select', function (_e, _icon) {
-		_applyIcon(_icon)
-		$selectIcon.modal('hide')
 	})
 })
 
-function _applyIcon(_icon) {
-	if (!_icon) return
-	var match = _icon.match(/class="([^"]+)"/)
-	if (match && match[1]) {
-		$('.eqLogicAttr[data-l2key="iconClass"]').value(match[1]).trigger('change')
-	}
-}
-
 /* ========================================================
-   Sélecteur d'image
+   Upload d'image — input file natif + AJAX vers le plugin
    ======================================================== */
-$('#bt_selectImage').off('click').on('click', function () {
-	if (typeof jeedom.selectImage === 'function') {
-		jeedom.selectImage({
-			success: function (_path) {
-				$('.eqLogicAttr[data-l2key="customImage"]').value(_path).trigger('change')
+$('#bt_uploadImage').off('click').on('click', function () {
+	$('#in_uploadImageFile').click()
+})
+
+$('#in_uploadImageFile').off('change').on('change', function () {
+	var fileInput = this
+	if (!fileInput.files || fileInput.files.length === 0) return
+	var file = fileInput.files[0]
+	var formData = new FormData()
+	formData.append('action', 'uploadImage')
+	formData.append('file', file)
+	formData.append('jeedom_token', JEEDOM_AJAX_TOKEN)
+
+	$.ajax({
+		type: 'POST',
+		url: 'plugins/JeeModale/core/ajax/JeeModale.ajax.php',
+		data: formData,
+		processData: false,
+		contentType: false,
+		dataType: 'json',
+		success: function (data) {
+			if (data.state !== 'ok') {
+				$('#div_alert').showAlert({ message: data.result, level: 'danger' })
+				return
 			}
-		})
-	} else {
-		alert('Fonction jeedom.selectImage non disponible')
-	}
+			var imagePath = data.result
+			$('.eqLogicAttr[data-l2key="customImage"]').value(imagePath).trigger('change')
+			$('#jeeModale-image-preview').attr('src', imagePath).show()
+			$('#div_alert').showAlert({ message: '{{Image téléchargée avec succès}}', level: 'success' })
+		},
+		error: function () {
+			$('#div_alert').showAlert({ message: '{{Erreur lors du téléchargement}}', level: 'danger' })
+		}
+	})
+	// Reset pour pouvoir re-sélectionner le même fichier
+	fileInput.value = ''
+})
+
+$('#bt_clearImage').off('click').on('click', function () {
+	$('.eqLogicAttr[data-l2key="customImage"]').value('').trigger('change')
+	$('#jeeModale-image-preview').attr('src', '').hide()
 })
 
 /* ========================================================
-   Aperçu de l'icône en temps réel
+   Mise à jour des aperçus au chargement d'un équipement
    ======================================================== */
-function updateIconPreview() {
-	var iconClass = $('.eqLogicAttr[data-l2key="iconClass"]').value() || 'fas fa-window-maximize'
-	var iconColor = $('.eqLogicAttr[data-l2key="iconColor"]').value() || '#0076b6'
-	var customImage = $('.eqLogicAttr[data-l2key="customImage"]').value() || ''
-	var previewHtml = ''
-	if (customImage !== '') {
-		previewHtml = '<img src="' + customImage + '" style="max-width:80%;max-height:80%;object-fit:contain;">'
-	} else {
-		previewHtml = '<i class="' + iconClass + '" style="font-size:2.5em;color:' + iconColor + ';"></i>'
-	}
-	$('#jeeModale-icon-preview').html(previewHtml)
-}
-
-$(document).off('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="iconClass"]').on('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="iconClass"]', updateIconPreview)
-$(document).off('change.jmIcon input.jmIcon', '.eqLogicAttr[data-l2key="iconColor"]').on('change.jmIcon input.jmIcon', '.eqLogicAttr[data-l2key="iconColor"]', updateIconPreview)
-$(document).off('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="customImage"]').on('change.jmIcon keyup.jmIcon', '.eqLogicAttr[data-l2key="customImage"]', updateIconPreview)
-
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
-	setTimeout(updateIconPreview, 300)
+	setTimeout(function () {
+		var iconClass = $('.eqLogicAttr[data-l2key="iconClass"]').value() || 'fas fa-window-maximize'
+		$('#jeeModale-icon-preview-inline').html('<i class="' + iconClass + '"></i>')
+
+		var customImage = $('.eqLogicAttr[data-l2key="customImage"]').value() || ''
+		if (customImage !== '') {
+			$('#jeeModale-image-preview').attr('src', customImage).show()
+		} else {
+			$('#jeeModale-image-preview').attr('src', '').hide()
+		}
+	}, 300)
 })
 
 /* ========================================================
    Affichage des commandes dans le tableau
-   IMPORTANT : les <span class="type"> et <span class="subType">
-   sont OBLIGATOIRES pour que Jeedom sérialise type/subType
-   à la sauvegarde. Sans eux → "Le type de la commande ne peut
-   pas être vide".
    ======================================================== */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) {
@@ -187,7 +189,6 @@ function addCmdToTable(_cmd) {
 	tr += '</td>'
 	tr += '<td>'
 	tr += '<input class="cmdAttr form-control input-sm" data-l1key="name" placeholder="{{Nom}}">'
-	// --- OBLIGATOIRE : spans type/subType pour la sérialisation Jeedom ---
 	tr += '<span class="type" type="' + init(_cmd.type) + '">' + jeedom.cmd.availableType() + '</span>'
 	tr += '<span class="subType" subType="' + init(_cmd.subType) + '"></span>'
 	tr += '</td>'
@@ -215,11 +216,9 @@ function addCmdToTable(_cmd) {
 		success: function (result) {
 			tr.setValues(_cmd, '.cmdAttr')
 			jeedom.cmd.changeType(tr, init(_cmd.subType))
-			// Masquer les sélecteurs type/subType (l'utilisateur n'a pas à les modifier)
 			tr.find('.type').hide()
 			tr.find('.subType').hide()
 
-			// Mettre à jour le label affiché
 			var fHuman = tr.find('.cmdAttr[data-l2key="targetHuman"]').value()
 			var fId = tr.find('.cmdAttr[data-l2key="targetId"]').value()
 			var fType = tr.find('.cmdAttr[data-l2key="targetType"]').value()
