@@ -29,6 +29,13 @@ class JeeModale extends eqLogic {
 	public function preSave() {}
 
 	public function postSave() {
+		// Rendre toutes les commandes non visibles sur le widget
+		foreach ($this->getCmd() as $cmd) {
+			if ($cmd->getIsVisible() == 1) {
+				$cmd->setIsVisible(0);
+				$cmd->save();
+			}
+		}
 		$this->refreshWidget();
 	}
 
@@ -66,7 +73,7 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		// Contenu cliquable
+		// Contenu cliquable (icône/image uniquement)
 		$content = '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;cursor:pointer;min-height:40px;"'
 			. ' onclick="jeeModale_openModal(' . $eqId . ')">'
 			. '<div>' . $widgetIconHtml . '</div>'
@@ -128,9 +135,7 @@ class JeeModale extends eqLogic {
 		$js .= '}';
 		$js .= '</script>';
 
-		// Injecter le contenu AVANT le dernier </div> du widget
-		// parent::toHtml produit : <div class="eqLogic...">...<div class="widget-name">...</div>...commandes...</div>
-		// On insère notre contenu + JS juste avant la fermeture finale
+		// Injecter avant le dernier </div>
 		$lastDivPos = strrpos($html, '</div>');
 		if ($lastDivPos !== false) {
 			$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);

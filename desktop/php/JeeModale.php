@@ -120,7 +120,10 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<div class="col-sm-6">
 									<a class="btn btn-default btn-sm" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
 									<a class="btn btn-danger btn-sm" id="bt_clearWidgetIcon"><i class="fas fa-times"></i> {{Effacer}}</a>
-									<div class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="font-size:1.5em;margin-top:8px;"></div>
+									<!-- Input caché pour la sérialisation -->
+									<input type="text" class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="display:none;" id="in_widgetIconHtml">
+									<!-- Div pour l'aperçu visuel -->
+									<div id="jeeModale-icon-preview" style="font-size:1.5em;margin-top:8px;"></div>
 								</div>
 							</div>
 

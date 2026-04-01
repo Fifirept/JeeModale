@@ -57,15 +57,30 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 	})
 })
 
-/* Sélecteur icône/image via jeedomUtils.chooseIcon */
+/* ========================================================
+   Sélecteur icône/image — jeedomUtils.chooseIcon
+   Le callback reçoit du HTML (<i class="..."> ou <img src="...">)
+   On stocke le HTML dans l'input caché (pour la sérialisation)
+   et on l'affiche dans le div preview
+   ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
-		$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty().append(_icon)
+		$('#in_widgetIconHtml').value(_icon)
+		$('#jeeModale-icon-preview').html(_icon)
 	})
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
-	$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty()
+	$('#in_widgetIconHtml').value('')
+	$('#jeeModale-icon-preview').empty()
+})
+
+/* Synchroniser le preview au chargement d'un équipement */
+$('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
+	setTimeout(function () {
+		var iconHtml = $('#in_widgetIconHtml').value() || ''
+		$('#jeeModale-icon-preview').html(iconHtml)
+	}, 300)
 })
 
 /* addCmdToTable */
