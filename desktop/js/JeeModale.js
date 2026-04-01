@@ -59,16 +59,19 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   - showimg: 1 → active l'onglet Images dans icon.selector.php
-   - selectIcon: NE PAS PASSER — la valeur stockée (HTML)
-     provoque un crash querySelector dans le core Jeedom
-     car il essaie de l'utiliser comme sélecteur CSS
+   icon.selector.php conditions:
+     tabicon visible si: init('selectIcon', 1) OU init('showimg') == 1
+     tabimg visible si: init('showimg') == 1
+     querySelector si: selectIcon != '' ET selectIcon != '0'
+
+   → showimg: 1 active les deux onglets
+   → selectIcon: '' (vide) bypasse le querySelector
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
 		$('#in_widgetIconHtml').value(_icon)
 		$('#jeeModale-icon-preview').html(_icon)
-	}, { showimg: 1, selectIcon: 0 })
+	}, { showimg: 1, selectIcon: '' })
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
