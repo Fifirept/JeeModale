@@ -29,7 +29,6 @@ class JeeModale extends eqLogic {
 	public function preSave() {}
 
 	public function postSave() {
-		// Rafraîchir le widget après sauvegarde pour prendre en compte les changements
 		$this->refreshWidget();
 	}
 
@@ -38,12 +37,7 @@ class JeeModale extends eqLogic {
 	public function preRemove() {}
 	public function postRemove() {}
 
-	/**
-	 * Widget : appelle parent::toHtml() pour le cadre Jeedom standard
-	 * (gère resize, design, taille persistée) puis injecte le contenu custom
-	 */
 	public function toHtml($_version = 'dashboard') {
-		// parent::toHtml génère le widget standard Jeedom avec cadre, resize, etc.
 		$html = parent::toHtml($_version);
 		if ($html == '') {
 			return '';
@@ -57,7 +51,6 @@ class JeeModale extends eqLogic {
 		$modalWidth = intval($this->getConfiguration('modalWidth', 0));
 		$modalHeight = intval($this->getConfiguration('modalHeight', 0));
 
-		// Collecter les cibles avec forceNewLine
 		$targets = array();
 		foreach ($this->getCmd() as $cmd) {
 			$conf = $cmd->getConfiguration();
@@ -73,13 +66,13 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		// Contenu cliquable à injecter dans le widget
+		// Contenu cliquable
 		$content = '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;cursor:pointer;min-height:40px;"'
 			. ' onclick="jeeModale_openModal(' . $eqId . ')">'
 			. '<div>' . $widgetIconHtml . '</div>'
 			. '</div>';
 
-		// JS inline pour la modale
+		// JS inline
 		$js = '<script type="text/javascript">';
 		$js .= 'if(typeof window._jeeModaleData==="undefined"){window._jeeModaleData={};}';
 		$js .= 'window._jeeModaleData[' . $eqId . ']={targets:' . $jsonTargets . ',name:"' . addslashes($this->getName()) . '",mW:' . ($modalWidth > 0 ? $modalWidth : 0) . ',mH:' . ($modalHeight > 0 ? $modalHeight : 0) . '};';
@@ -112,7 +105,6 @@ class JeeModale extends eqLogic {
 		$js .= '        var t=d.targets[i];';
 		$js .= '        var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];';
 		$js .= '        if(!itemHtml)continue;';
-		// Retour à la ligne forcé AVANT uniquement : div séparateur invisible
 		$js .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';
 		$js .= '        html+="<div class=\'jeeModale-modal-item\'>";';
 		$js .= '        html+=itemHtml;';
@@ -136,10 +128,12 @@ class JeeModale extends eqLogic {
 		$js .= '}';
 		$js .= '</script>';
 
-		// Injecter le contenu custom juste après la première balise > du widget
-		$pos = strpos($html, '>');
-		if ($pos !== false) {
-			$html = substr($html, 0, $pos + 1) . $content . $js . substr($html, $pos + 1);
+		// Injecter le contenu AVANT le dernier </div> du widget
+		// parent::toHtml produit : <div class="eqLogic...">...<div class="widget-name">...</div>...commandes...</div>
+		// On insère notre contenu + JS juste avant la fermeture finale
+		$lastDivPos = strrpos($html, '</div>');
+		if ($lastDivPos !== false) {
+			$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);
 		}
 
 		return $html;
