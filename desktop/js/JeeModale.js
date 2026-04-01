@@ -59,16 +59,17 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   Pattern IDENTIQUE à la page widgets du core Jeedom :
-   - Bouton avec classe "chooseIcon"
-   - jeedomUtils.chooseIcon callback écrit dans l'input adjacent
+   icon.selector.php affiche l'onglet Images UNIQUEMENT si
+   le paramètre showimg=1 est passé. Sans ce paramètre,
+   seul l'onglet Icônes est visible.
+   jeedomUtils.chooseIcon(callback, options) passe les options
+   en paramètres GET à la modale.
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	var $input = $('#in_widgetIconHtml')
 	jeedomUtils.chooseIcon(function (_icon) {
-		$input.value(_icon)
+		$('#in_widgetIconHtml').value(_icon)
 		$('#jeeModale-icon-preview').html(_icon)
-	})
+	}, { showimg: 1 })
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
@@ -76,7 +77,7 @@ $('#bt_clearWidgetIcon').off('click').on('click', function () {
 	$('#jeeModale-icon-preview').empty()
 })
 
-/* Synchroniser le preview au chargement d'un équipement */
+/* Synchroniser le preview au chargement */
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
 	setTimeout(function () {
 		var iconHtml = $('#in_widgetIconHtml').value() || ''
