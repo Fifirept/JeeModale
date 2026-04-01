@@ -29,20 +29,15 @@ function _jmCleanName(str) {
 }
 
 /* ========================================================
-   Boutons ajout cibles
+   Ajout cibles
    ======================================================== */
 $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	jeedom.eqLogic.getSelectModal({}, function (result) {
 		if (!result || !result.id) return
 		addCmdToTable({
 			name: _jmCleanName(result.human) || ('Equipement ' + result.id),
-			type: 'info',
-			subType: 'string',
-			configuration: {
-				targetType: 'eqLogic',
-				targetId: String(result.id),
-				targetHuman: result.human || ''
-			}
+			type: 'info', subType: 'string',
+			configuration: { targetType: 'eqLogic', targetId: String(result.id), targetHuman: result.human || '' }
 		})
 	})
 })
@@ -58,45 +53,32 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 		if (!cmdId) return
 		addCmdToTable({
 			name: _jmCleanName(cmdHuman) || ('Commande ' + cmdId),
-			type: 'info',
-			subType: 'string',
-			configuration: {
-				targetType: 'cmd',
-				targetId: cmdId,
-				targetHuman: cmdHuman
-			}
+			type: 'info', subType: 'string',
+			configuration: { targetType: 'cmd', targetId: cmdId, targetHuman: cmdHuman }
 		})
 	})
 })
 
 /* ========================================================
-   Sélecteur icône/image — jeedomUtils.chooseIcon
-   Gère les deux : retourne <i class="..."> OU <img src="...">
-   On stocke le HTML brut dans configuration.widgetIconHtml
+   Sélecteur icône/image — EXACTEMENT le pattern scenario.php
+   Le callback reçoit du HTML brut (<i class="..."> ou <img src="...">)
+   On l'injecte dans le div eqLogicAttr[data-l2key="widgetIconHtml"]
    ======================================================== */
-$('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	jeedomUtils.chooseIcon(function (_iconHtml) {
-		if (!_iconHtml) return
-		$('.eqLogicAttr[data-l2key="widgetIconHtml"]').value(_iconHtml)
-		$('#jeeModale-icon-preview').html(_iconHtml)
+document.getElementById('bt_chooseWidgetIcon').addEventListener('click', function () {
+	jeedomUtils.chooseIcon(function (_icon) {
+		document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').innerHTML = _icon
+		// Marquer le champ comme modifié pour que Jeedom le sérialise à la sauvegarde
+		document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').setAttribute('data-changed', '1')
 	})
 })
 
-$('#bt_clearWidgetIcon').off('click').on('click', function () {
-	$('.eqLogicAttr[data-l2key="widgetIconHtml"]').value('')
-	$('#jeeModale-icon-preview').html('')
-})
-
-/* Mise à jour de l'aperçu au chargement */
-$('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
-	setTimeout(function () {
-		var iconHtml = $('.eqLogicAttr[data-l2key="widgetIconHtml"]').value() || ''
-		$('#jeeModale-icon-preview').html(iconHtml)
-	}, 300)
+document.getElementById('bt_clearWidgetIcon').addEventListener('click', function () {
+	document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').innerHTML = ''
+	document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').setAttribute('data-changed', '1')
 })
 
 /* ========================================================
-   addCmdToTable
+   addCmdToTable — avec checkbox "retour à la ligne"
    ======================================================== */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) { var _cmd = { configuration: {} } }
@@ -126,6 +108,9 @@ function addCmdToTable(_cmd) {
 	tr += '<span class="jeeModale-target-label">' + targetLabel + '</span>'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetId" style="display:none;">'
 	tr += '<input class="cmdAttr" data-l1key="configuration" data-l2key="targetHuman" style="display:none;">'
+	tr += '</td>'
+	tr += '<td style="text-align:center;">'
+	tr += '<input type="checkbox" class="cmdAttr" data-l1key="configuration" data-l2key="forceNewLine">'
 	tr += '</td>'
 	tr += '<td><i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove" title="{{Supprimer la commande}}"></i></td>'
 	tr += '</tr>'

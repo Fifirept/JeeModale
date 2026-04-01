@@ -116,22 +116,19 @@ $eqLogics = eqLogic::byType($plugin->getId());
 
 							<legend><i class="fas fa-cogs"></i> {{Apparence du widget}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Icône ou image du widget}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Ouvre le sélecteur d'icônes et d'images Jeedom. Choisissez une icône OU une image.}}"></i></sup>
-								</label>
+								<label class="col-sm-4 control-label">{{Icône / Image}}</label>
 								<div class="col-sm-6">
-									<a class="btn btn-default" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
+									<a class="btn btn-default btn-sm" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
 									<a class="btn btn-danger btn-sm" id="bt_clearWidgetIcon"><i class="fas fa-times"></i> {{Effacer}}</a>
-									<!-- Stockage du HTML brut retourné par jeedomUtils.chooseIcon -->
-									<input type="text" class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="display:none;">
-									<div id="jeeModale-icon-preview" style="font-size:2em;margin-top:8px;"></div>
+									<!-- Pattern identique à scenario.php : div eqLogicAttr qui stocke le HTML brut -->
+									<div class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="font-size:1.5em;margin-top:8px;"></div>
 								</div>
 							</div>
 
 							<legend><i class="fas fa-expand-arrows-alt"></i> {{Dimensions de la modale}}</legend>
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Largeur (px)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Largeur de la modale en pixels. Laisser vide pour auto.}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Largeur de la modale. Laisser vide = auto.}}"></i></sup>
 								</label>
 								<div class="col-sm-3">
 									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalWidth" placeholder="auto" min="200">
@@ -139,7 +136,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							</div>
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Hauteur (px)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Hauteur de la modale en pixels. Laisser vide pour auto.}}"></i></sup>
+									<sup><i class="fas fa-question-circle tooltips" title="{{Hauteur de la modale. Laisser vide = auto.}}"></i></sup>
 								</label>
 								<div class="col-sm-3">
 									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalHeight" placeholder="auto" min="100">
@@ -174,7 +171,8 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<th style="min-width:200px;width:300px;">{{Nom}}</th>
 								<th style="min-width:100px;width:120px;">{{Type cible}}</th>
 								<th style="min-width:200px;">{{Cible}}</th>
-								<th style="min-width:80px;width:150px;">{{Actions}}</th>
+								<th style="min-width:80px;width:80px;">{{Retour ligne}}</th>
+								<th style="min-width:80px;width:100px;">{{Actions}}</th>
 							</tr>
 						</thead>
 						<tbody>
