@@ -59,17 +59,43 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   icon.selector.php affiche l'onglet Images UNIQUEMENT si
-   le paramètre showimg=1 est passé. Sans ce paramètre,
-   seul l'onglet Icônes est visible.
-   jeedomUtils.chooseIcon(callback, options) passe les options
-   en paramètres GET à la modale.
+   On ouvre la modale icon.selector.php directement via
+   jeeDialog.dialog avec showimg=1 en paramètre.
+   C'est exactement ce que fait le core widgets.js.
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	jeedomUtils.chooseIcon(function (_icon) {
-		$('#in_widgetIconHtml').value(_icon)
-		$('#jeeModale-icon-preview').html(_icon)
-	}, { showimg: 1 })
+	var url = 'index.php?v=d&modal=icon.selector&showimg=1&selectIcon=1'
+	if (typeof jeeDialog !== 'undefined' && typeof jeeDialog.dialog === 'function') {
+		jeeDialog.dialog({
+			id: 'md_iconSelector',
+			title: '{{Choisir une illustration}}',
+			contentUrl: url,
+			width: '80%',
+			height: '80%',
+			callback: function (_icon) {
+				if (_icon) {
+					$('#in_widgetIconHtml').value(_icon)
+					$('#jeeModale-icon-preview').html(_icon)
+				}
+			},
+			buttons: {
+				confirm: {
+					label: '{{Appliquer}}',
+					className: 'success'
+				},
+				cancel: {
+					label: '{{Annuler}}',
+					className: 'danger'
+				}
+			}
+		})
+	} else {
+		// Fallback : jeedomUtils.chooseIcon standard
+		jeedomUtils.chooseIcon(function (_icon) {
+			$('#in_widgetIconHtml').value(_icon)
+			$('#jeeModale-icon-preview').html(_icon)
+		})
+	}
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
