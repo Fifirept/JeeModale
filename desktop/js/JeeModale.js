@@ -59,31 +59,16 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   - showimg: 1 active l'onglet Images
-   - selectIcon: passe la classe CSS de l'icône actuelle
-     pour la pré-sélection (PAS le HTML complet sinon
-     querySelector crash avec "is not a valid selector")
+   - showimg: 1 → active l'onglet Images dans icon.selector.php
+   - selectIcon: NE PAS PASSER — la valeur stockée (HTML)
+     provoque un crash querySelector dans le core Jeedom
+     car il essaie de l'utiliser comme sélecteur CSS
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	// Extraire la classe CSS de l'icône actuelle pour la pré-sélection
-	var currentHtml = $('#in_widgetIconHtml').value() || ''
-	var currentClass = ''
-	if (currentHtml) {
-		var match = currentHtml.match(/class=['"](.*?)['"]/)
-		if (match && match[1]) {
-			currentClass = match[1]
-		}
-	}
-
-	var opts = { showimg: 1 }
-	if (currentClass !== '') {
-		opts.selectIcon = currentClass
-	}
-
 	jeedomUtils.chooseIcon(function (_icon) {
 		$('#in_widgetIconHtml').value(_icon)
 		$('#jeeModale-icon-preview').html(_icon)
-	}, opts)
+	}, { showimg: 1, selectIcon: 0 })
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
