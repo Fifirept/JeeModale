@@ -59,43 +59,31 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   On ouvre la modale icon.selector.php directement via
-   jeeDialog.dialog avec showimg=1 en paramètre.
-   C'est exactement ce que fait le core widgets.js.
+   - showimg: 1 active l'onglet Images
+   - selectIcon: passe la classe CSS de l'icône actuelle
+     pour la pré-sélection (PAS le HTML complet sinon
+     querySelector crash avec "is not a valid selector")
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	var url = 'index.php?v=d&modal=icon.selector&showimg=1&selectIcon=1'
-	if (typeof jeeDialog !== 'undefined' && typeof jeeDialog.dialog === 'function') {
-		jeeDialog.dialog({
-			id: 'md_iconSelector',
-			title: '{{Choisir une illustration}}',
-			contentUrl: url,
-			width: '80%',
-			height: '80%',
-			callback: function (_icon) {
-				if (_icon) {
-					$('#in_widgetIconHtml').value(_icon)
-					$('#jeeModale-icon-preview').html(_icon)
-				}
-			},
-			buttons: {
-				confirm: {
-					label: '{{Appliquer}}',
-					className: 'success'
-				},
-				cancel: {
-					label: '{{Annuler}}',
-					className: 'danger'
-				}
-			}
-		})
-	} else {
-		// Fallback : jeedomUtils.chooseIcon standard
-		jeedomUtils.chooseIcon(function (_icon) {
-			$('#in_widgetIconHtml').value(_icon)
-			$('#jeeModale-icon-preview').html(_icon)
-		})
+	// Extraire la classe CSS de l'icône actuelle pour la pré-sélection
+	var currentHtml = $('#in_widgetIconHtml').value() || ''
+	var currentClass = ''
+	if (currentHtml) {
+		var match = currentHtml.match(/class=['"](.*?)['"]/)
+		if (match && match[1]) {
+			currentClass = match[1]
+		}
 	}
+
+	var opts = { showimg: 1 }
+	if (currentClass !== '') {
+		opts.selectIcon = currentClass
+	}
+
+	jeedomUtils.chooseIcon(function (_icon) {
+		$('#in_widgetIconHtml').value(_icon)
+		$('#jeeModale-icon-preview').html(_icon)
+	}, opts)
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
