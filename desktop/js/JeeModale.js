@@ -28,9 +28,7 @@ function _jmCleanName(str) {
 	return str.replace(/#/g, '').replace(/\[/g, '').replace(/\]/g, '').trim()
 }
 
-/* ========================================================
-   Ajout cibles
-   ======================================================== */
+/* Ajout cibles */
 $('#bt_addTargetEqLogic').off('click').on('click', function () {
 	jeedom.eqLogic.getSelectModal({}, function (result) {
 		if (!result || !result.id) return
@@ -59,13 +57,7 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 	})
 })
 
-/* ========================================================
-   Sélecteur icône/image — jeedomUtils.chooseIcon via jQuery
-   Le sélecteur Jeedom (icon.selector.php) gère :
-   - Onglet Icônes : retourne <i class="fas fa-xxx"></i>
-   - Onglet Img : browse data/img/, retourne <img src="data/img/xxx.png"/>
-   On stocke le HTML brut dans la div eqLogicAttr
-   ======================================================== */
+/* Sélecteur icône/image via jeedomUtils.chooseIcon */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
 		$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty().append(_icon)
@@ -76,9 +68,7 @@ $('#bt_clearWidgetIcon').off('click').on('click', function () {
 	$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty()
 })
 
-/* ========================================================
-   addCmdToTable — avec checkbox "retour à la ligne avant"
-   ======================================================== */
+/* addCmdToTable */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) { var _cmd = { configuration: {} } }
 	if (!isset(_cmd.configuration)) { _cmd.configuration = {} }

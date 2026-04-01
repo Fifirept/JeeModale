@@ -120,24 +120,19 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<div class="col-sm-6">
 									<a class="btn btn-default btn-sm" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
 									<a class="btn btn-danger btn-sm" id="bt_clearWidgetIcon"><i class="fas fa-times"></i> {{Effacer}}</a>
-									<!-- Pattern identique à scenario.php : div eqLogicAttr qui stocke le HTML brut -->
 									<div class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="font-size:1.5em;margin-top:8px;"></div>
 								</div>
 							</div>
 
 							<legend><i class="fas fa-expand-arrows-alt"></i> {{Dimensions de la modale}}</legend>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Largeur (px)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Largeur de la modale. Laisser vide = auto.}}"></i></sup>
-								</label>
+								<label class="col-sm-4 control-label">{{Largeur (px)}}</label>
 								<div class="col-sm-3">
 									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalWidth" placeholder="auto" min="200">
 								</div>
 							</div>
 							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Hauteur (px)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Hauteur de la modale. Laisser vide = auto.}}"></i></sup>
-								</label>
+								<label class="col-sm-4 control-label">{{Hauteur (px)}}</label>
 								<div class="col-sm-3">
 									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="modalHeight" placeholder="auto" min="100">
 								</div>
@@ -171,7 +166,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<th style="min-width:200px;width:300px;">{{Nom}}</th>
 								<th style="min-width:100px;width:120px;">{{Type cible}}</th>
 								<th style="min-width:200px;">{{Cible}}</th>
-								<th style="min-width:80px;width:80px;">{{Retour ligne}}</th>
+								<th style="min-width:80px;width:140px;" title="{{Retour à la ligne forcé avant cet élément dans la modale}}">{{Retour ligne avant}}</th>
 								<th style="min-width:80px;width:100px;">{{Actions}}</th>
 							</tr>
 						</thead>
