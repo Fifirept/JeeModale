@@ -58,14 +58,15 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Sélecteur icône/image — jeedomUtils.chooseIcon
-   Le callback reçoit du HTML (<i class="..."> ou <img src="...">)
-   On stocke le HTML dans l'input caché (pour la sérialisation)
-   et on l'affiche dans le div preview
+   Sélecteur icône/image
+   Pattern IDENTIQUE à la page widgets du core Jeedom :
+   - Bouton avec classe "chooseIcon"
+   - jeedomUtils.chooseIcon callback écrit dans l'input adjacent
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
+	var $input = $('#in_widgetIconHtml')
 	jeedomUtils.chooseIcon(function (_icon) {
-		$('#in_widgetIconHtml').value(_icon)
+		$input.value(_icon)
 		$('#jeeModale-icon-preview').html(_icon)
 	})
 })

@@ -118,12 +118,14 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							<div class="form-group">
 								<label class="col-sm-4 control-label">{{Icône / Image}}</label>
 								<div class="col-sm-6">
-									<a class="btn btn-default btn-sm" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
-									<a class="btn btn-danger btn-sm" id="bt_clearWidgetIcon"><i class="fas fa-times"></i> {{Effacer}}</a>
-									<!-- Input caché pour la sérialisation -->
-									<input type="text" class="eqLogicAttr" data-l1key="configuration" data-l2key="widgetIconHtml" style="display:none;" id="in_widgetIconHtml">
-									<!-- Div pour l'aperçu visuel -->
+									<div class="input-group">
+										<input class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="widgetIconHtml" id="in_widgetIconHtml">
+										<span class="input-group-btn">
+											<a class="btn btn-sm chooseIcon roundedRight" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
+										</span>
+									</div>
 									<div id="jeeModale-icon-preview" style="font-size:1.5em;margin-top:8px;"></div>
+									<a class="btn btn-danger btn-xs" id="bt_clearWidgetIcon" style="margin-top:4px;"><i class="fas fa-times"></i> {{Effacer}}</a>
 								</div>
 							</div>
 
