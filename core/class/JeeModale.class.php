@@ -27,7 +27,12 @@ class JeeModale extends eqLogic {
 	public function preInsert() {}
 	public function postInsert() {}
 	public function preSave() {}
-	public function postSave() {}
+
+	public function postSave() {
+		// Forcer le rafraîchissement du widget après sauvegarde
+		$this->refreshWidget();
+	}
+
 	public function preUpdate() {}
 	public function postUpdate() {}
 	public function preRemove() {}
@@ -40,17 +45,15 @@ class JeeModale extends eqLogic {
 		}
 		$version = jeedom::versionAlias($_version);
 
-		// Icône/image : HTML brut stocké par jeedomUtils.chooseIcon (comme scenario.php)
 		$widgetIconHtml = $this->getConfiguration('widgetIconHtml', '');
 		if (empty($widgetIconHtml)) {
 			$widgetIconHtml = '<i class="fas fa-window-maximize" style="font-size:1.5em;"></i>';
 		}
 
-		// Dimensions de la modale
 		$modalWidth = intval($this->getConfiguration('modalWidth', 0));
 		$modalHeight = intval($this->getConfiguration('modalHeight', 0));
 
-		// Collecter les cibles avec leur option forceNewLine
+		// Collecter les cibles avec forceNewLine
 		$targets = array();
 		foreach ($this->getCmd() as $cmd) {
 			$conf = $cmd->getConfiguration();
@@ -58,7 +61,7 @@ class JeeModale extends eqLogic {
 				$targets[] = array(
 					'type' => $conf['targetType'],
 					'id' => intval($conf['targetId']),
-					'forceNewLine' => isset($conf['forceNewLine']) && $conf['forceNewLine'] == 1
+					'forceNewLine' => (!empty($conf['forceNewLine']) && $conf['forceNewLine'] == 1) ? true : false
 				);
 			}
 		}
@@ -67,11 +70,10 @@ class JeeModale extends eqLogic {
 		$jsonTargets = json_encode($targets);
 		$escapedName = htmlspecialchars($this->getName(), ENT_QUOTES, 'UTF-8');
 
-		// ---- Widget HTML (compact) ----
+		// Widget HTML compact
 		$html = '<div class="eqLogic eqLogic-widget" data-eqLogic_id="' . $eqId . '"';
 		$html .= ' data-eqType="JeeModale"';
 		$html .= ' data-version="' . $version . '"';
-		$html .= ' style="position:relative;"';
 		$html .= '>';
 		$html .= '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;cursor:pointer;"';
 		$html .= ' onclick="jeeModale_openModal(' . $eqId . ')">';
@@ -80,7 +82,7 @@ class JeeModale extends eqLogic {
 		$html .= '</div>';
 		$html .= '</div>';
 
-		// ---- JS inline ----
+		// JS inline
 		$html .= '<script type="text/javascript">';
 		$html .= 'if(typeof window._jeeModaleData==="undefined"){window._jeeModaleData={};}';
 		$html .= 'window._jeeModaleData[' . $eqId . ']={targets:' . $jsonTargets . ',name:"' . addslashes($this->getName()) . '",mW:' . ($modalWidth > 0 ? $modalWidth : 0) . ',mH:' . ($modalHeight > 0 ? $modalHeight : 0) . '};';
@@ -92,7 +94,6 @@ class JeeModale extends eqLogic {
 		$html .= '    if(typeof $.fn.showAlert!=="undefined"){$("#div_alert").showAlert({message:"Aucune cible configurée",level:"warning"});}';
 		$html .= '    return;';
 		$html .= '  }';
-		// Séparer eqLogicIds et cmdIds pour l'AJAX
 		$html .= '  var eqIds=[],cmdIds=[];';
 		$html .= '  for(var i=0;i<d.targets.length;i++){';
 		$html .= '    if(d.targets[i].type==="eqLogic")eqIds.push(d.targets[i].id);';
@@ -104,21 +105,20 @@ class JeeModale extends eqLogic {
 		$html .= '    success:function(data){';
 		$html .= '      if(data.state!=="ok"){alert(data.result);return;}';
 		$html .= '      var items=data.result;';
-		// Construire un map id->html pour retrouver l'ordre
 		$html .= '      var mapEq={},mapCmd={};';
 		$html .= '      for(var i=0;i<items.length;i++){';
 		$html .= '        if(items[i].type==="eqLogic")mapEq[items[i].id]=items[i].html;';
 		$html .= '        else mapCmd[items[i].id]=items[i].html;';
 		$html .= '      }';
-		// Construire le contenu en respectant l'ordre des cibles et forceNewLine
+		// Flexbox wrap : éléments côte à côte, retour à la ligne auto selon largeur
 		$html .= '      var html="<div class=\'jeeModale-modal-content\' style=\'display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:flex-start;\'>";';
 		$html .= '      for(var i=0;i<d.targets.length;i++){';
 		$html .= '        var t=d.targets[i];';
 		$html .= '        var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];';
 		$html .= '        if(!itemHtml)continue;';
-		// forceNewLine : flex-basis:100% force un retour à la ligne
-		$html .= '        var basis=t.forceNewLine?"flex-basis:100%;":"";';
-		$html .= '        html+="<div class=\'jeeModale-modal-item\' style=\'"+basis+"\'>";';
+		// forceNewLine : insérer un séparateur invisible AVANT l'élément
+		$html .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';
+		$html .= '        html+="<div class=\'jeeModale-modal-item\'>";';
 		$html .= '        html+=itemHtml;';
 		$html .= '        html+="</div>";';
 		$html .= '      }';

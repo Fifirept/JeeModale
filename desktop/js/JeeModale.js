@@ -60,25 +60,24 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 })
 
 /* ========================================================
-   Sélecteur icône/image — EXACTEMENT le pattern scenario.php
-   Le callback reçoit du HTML brut (<i class="..."> ou <img src="...">)
-   On l'injecte dans le div eqLogicAttr[data-l2key="widgetIconHtml"]
+   Sélecteur icône/image — jeedomUtils.chooseIcon via jQuery
+   Le sélecteur Jeedom (icon.selector.php) gère :
+   - Onglet Icônes : retourne <i class="fas fa-xxx"></i>
+   - Onglet Img : browse data/img/, retourne <img src="data/img/xxx.png"/>
+   On stocke le HTML brut dans la div eqLogicAttr
    ======================================================== */
-document.getElementById('bt_chooseWidgetIcon').addEventListener('click', function () {
+$('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
-		document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').innerHTML = _icon
-		// Marquer le champ comme modifié pour que Jeedom le sérialise à la sauvegarde
-		document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').setAttribute('data-changed', '1')
+		$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty().append(_icon)
 	})
 })
 
-document.getElementById('bt_clearWidgetIcon').addEventListener('click', function () {
-	document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').innerHTML = ''
-	document.querySelector('.eqLogicAttr[data-l2key="widgetIconHtml"]').setAttribute('data-changed', '1')
+$('#bt_clearWidgetIcon').off('click').on('click', function () {
+	$('.eqLogicAttr[data-l2key="widgetIconHtml"]').empty()
 })
 
 /* ========================================================
-   addCmdToTable — avec checkbox "retour à la ligne"
+   addCmdToTable — avec checkbox "retour à la ligne avant"
    ======================================================== */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) { var _cmd = { configuration: {} } }
