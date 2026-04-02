@@ -21,23 +21,56 @@ class JeeModale extends eqLogic {
 	public function preRemove() {}
 	public function postRemove() {}
 
+	/**
+	 * Applique les dimensions configurées à l'icône/image HTML
+	 */
+	private function applyIconSize($html) {
+		$w = intval($this->getConfiguration('iconWidth', 0));
+		$h = intval($this->getConfiguration('iconHeight', 0));
+		if ($w <= 0 && $h <= 0) return $html;
+
+		$style = '';
+		if ($w > 0) $style .= 'width:' . $w . 'px;';
+		if ($h > 0) $style .= 'height:' . $h . 'px;';
+
+		// Image <img>
+		if (strpos($html, '<img') !== false) {
+			$style .= 'object-fit:contain;';
+			if (strpos($html, "style='") !== false) {
+				return preg_replace("/style='([^']*)'/", "style='" . $style . "$1'", $html);
+			} else {
+				return str_replace('<img', "<img style='" . $style . "'", $html);
+			}
+		}
+		// Icône <i>
+		if (strpos($html, '<i') !== false) {
+			$fontSize = $h > 0 ? $h : $w;
+			$iconStyle = 'font-size:' . $fontSize . 'px;';
+			if (strpos($html, "style='") !== false) {
+				return preg_replace("/style='([^']*)'/", "style='" . $iconStyle . "$1'", $html);
+			} else {
+				return str_replace('<i', "<i style='" . $iconStyle . "'", $html);
+			}
+		}
+		return $html;
+	}
+
 	public function toHtml($_version = 'dashboard') {
-		// parent::toHtml génère le cadre Jeedom complet avec resize + commandes
 		$html = parent::toHtml($_version);
 		if ($html == '') {
 			return '';
 		}
 
-		// Supprimer tout le contenu des commandes (div.cmd) du HTML généré par parent
-		// On garde le cadre widget + widget-name mais on vire les cmd-widget
+		// Supprimer le HTML des commandes rendues par parent
 		$html = preg_replace('/<div class="cmd cmd-widget[^"]*"[^>]*>.*?<\/script>\s*<\/div>/s', '', $html);
-		// Aussi supprimer le div .cmds s'il existe
 		$html = preg_replace('/<div class="cmds[^"]*">(.*?)<\/div>/s', '', $html);
 
 		$widgetIconHtml = $this->getConfiguration('widgetIconHtml', '');
 		if (empty($widgetIconHtml)) {
 			$widgetIconHtml = '<i class="fas fa-window-maximize" style="font-size:1.5em;"></i>';
 		}
+		// Appliquer les dimensions
+		$widgetIconHtml = $this->applyIconSize($widgetIconHtml);
 
 		$modalWidth = intval($this->getConfiguration('modalWidth', 0));
 		$modalHeight = intval($this->getConfiguration('modalHeight', 0));
@@ -69,55 +102,33 @@ class JeeModale extends eqLogic {
 		$js .= 'if(typeof jeeModale_openModal==="undefined"){';
 		$js .= 'window.jeeModale_openModal=function(eqId){';
 		$js .= '  var d=window._jeeModaleData[eqId];if(!d)return;';
-		$js .= '  if(!d.targets||d.targets.length===0){';
-		$js .= '    if(typeof $.fn.showAlert!=="undefined"){$("#div_alert").showAlert({message:"Aucune cible configurée",level:"warning"});}';
-		$js .= '    return;';
-		$js .= '  }';
+		$js .= '  if(!d.targets||d.targets.length===0){if(typeof $.fn.showAlert!=="undefined"){$("#div_alert").showAlert({message:"Aucune cible configurée",level:"warning"});}return;}';
 		$js .= '  var eqIds=[],cmdIds=[];';
-		$js .= '  for(var i=0;i<d.targets.length;i++){';
-		$js .= '    if(d.targets[i].type==="eqLogic")eqIds.push(d.targets[i].id);';
-		$js .= '    else if(d.targets[i].type==="cmd")cmdIds.push(d.targets[i].id);';
-		$js .= '  }';
+		$js .= '  for(var i=0;i<d.targets.length;i++){if(d.targets[i].type==="eqLogic")eqIds.push(d.targets[i].id);else if(d.targets[i].type==="cmd")cmdIds.push(d.targets[i].id);}';
 		$js .= '  $.ajax({type:"POST",url:"plugins/JeeModale/core/ajax/JeeModale.ajax.php",';
 		$js .= '    data:{action:"getTargetHtml",eqLogicIds:JSON.stringify(eqIds),cmdIds:JSON.stringify(cmdIds),jeedom_token:JEEDOM_AJAX_TOKEN},';
 		$js .= '    dataType:"json",';
 		$js .= '    success:function(data){';
 		$js .= '      if(data.state!=="ok"){alert(data.result);return;}';
-		$js .= '      var items=data.result;';
-		$js .= '      var mapEq={},mapCmd={};';
-		$js .= '      for(var i=0;i<items.length;i++){';
-		$js .= '        if(items[i].type==="eqLogic")mapEq[items[i].id]=items[i].html;';
-		$js .= '        else mapCmd[items[i].id]=items[i].html;';
-		$js .= '      }';
+		$js .= '      var items=data.result,mapEq={},mapCmd={};';
+		$js .= '      for(var i=0;i<items.length;i++){if(items[i].type==="eqLogic")mapEq[items[i].id]=items[i].html;else mapCmd[items[i].id]=items[i].html;}';
 		$js .= '      var html="<div class=\'jeeModale-modal-content\' style=\'display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:flex-start;\'>";';
-		$js .= '      for(var i=0;i<d.targets.length;i++){';
-		$js .= '        var t=d.targets[i];';
-		$js .= '        var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];';
-		$js .= '        if(!itemHtml)continue;';
+		$js .= '      for(var i=0;i<d.targets.length;i++){var t=d.targets[i];var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];if(!itemHtml)continue;';
 		$js .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';
-		$js .= '        html+="<div class=\'jeeModale-modal-item\'>";';
-		$js .= '        html+=itemHtml;';
-		$js .= '        html+="</div>";';
-		$js .= '      }';
+		$js .= '        html+="<div class=\'jeeModale-modal-item\'>"+itemHtml+"</div>";}';
 		$js .= '      html+="</div>";';
 		$js .= '      var opts={modal:true,close:function(){$(this).dialog("destroy").remove();}};';
 		$js .= '      if(d.mW>0)opts.width=d.mW;else opts.width=Math.min(900,$(window).width()*0.9);';
 		$js .= '      if(d.mH>0)opts.height=d.mH;else opts.height="auto";';
-		$js .= '      opts.open=function(){';
-		$js .= '        try{$(this).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
-		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(this));}}catch(e){}';
-		$js .= '      };';
+		$js .= '      opts.open=function(){try{$(this).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
+		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(this));}}catch(e){}};';
 		$js .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'>"+html+"</div>");';
-		$js .= '      $("body").append($dlg);';
-		$js .= '      $dlg.dialog(opts);';
-		$js .= '    },';
-		$js .= '    error:function(){alert("Erreur lors du chargement de la modale");}';
-		$js .= '  });';
+		$js .= '      $("body").append($dlg);$dlg.dialog(opts);';
+		$js .= '    },error:function(){alert("Erreur lors du chargement de la modale");}});';
 		$js .= '};';
 		$js .= '}';
 		$js .= '</script>';
 
-		// Injecter avant le dernier </div>
 		$lastDivPos = strrpos($html, '</div>');
 		if ($lastDivPos !== false) {
 			$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);

@@ -121,11 +121,26 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<div class="input-group">
 										<input class="eqLogicAttr form-control roundedLeft" data-l1key="configuration" data-l2key="widgetIconHtml" id="in_widgetIconHtml">
 										<span class="input-group-btn">
-											<a class="btn btn-sm chooseIcon roundedRight" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
+											<a class="btn btn-default" id="bt_chooseWidgetIcon"><i class="fas fa-flag"></i> {{Choisir}}</a>
+											<a class="btn btn-danger roundedRight" id="bt_clearWidgetIcon"><i class="fas fa-times"></i></a>
 										</span>
 									</div>
-									<div id="jeeModale-icon-preview" style="font-size:1.5em;margin-top:8px;"></div>
-									<a class="btn btn-danger btn-xs" id="bt_clearWidgetIcon" style="margin-top:4px;"><i class="fas fa-times"></i> {{Effacer}}</a>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Largeur icône/image (px)}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Laisser vide pour la taille par défaut}}"></i></sup>
+								</label>
+								<div class="col-sm-3">
+									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconWidth" placeholder="auto" min="10" id="in_iconWidth">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-4 control-label">{{Hauteur icône/image (px)}}
+									<sup><i class="fas fa-question-circle tooltips" title="{{Laisser vide pour la taille par défaut}}"></i></sup>
+								</label>
+								<div class="col-sm-3">
+									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconHeight" placeholder="auto" min="10" id="in_iconHeight">
 								</div>
 							</div>
 
@@ -150,6 +165,15 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<label class="col-sm-4 control-label">{{Description}}</label>
 								<div class="col-sm-6">
 									<textarea class="form-control eqLogicAttr autogrow" data-l1key="comment"></textarea>
+								</div>
+							</div>
+							<legend><i class="fas fa-eye"></i> {{Aperçu du widget}}</legend>
+							<div class="form-group">
+								<div class="col-sm-8 col-sm-offset-2">
+									<div id="jeeModale-preview-box" style="border:1px dashed #ccc;border-radius:8px;padding:10px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f8f8;cursor:pointer;">
+										<div id="jeeModale-icon-preview" style="display:flex;align-items:center;justify-content:center;"></div>
+										<span id="jeeModale-preview-name" style="font-size:0.85em;margin-top:5px;color:#555;"></span>
+									</div>
 								</div>
 							</div>
 						</div>
