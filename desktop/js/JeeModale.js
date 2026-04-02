@@ -59,51 +59,17 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 
 /* ========================================================
    Sélecteur icône/image
-   Approche directe : ouvrir icon.selector.php via jeeDialog
-   avec les bons paramètres GET, exactement comme le core.
+   Signature réelle de jeedomUtils.chooseIcon(_callback, _params) :
+     _params.img = true   → ajoute &showimg=1 à l'URL
+     _params.icon = "..." → ajoute &selectIcon=... (pré-sélection)
+     _params.color = "..."
+     _params.path = "..."
    ======================================================== */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
-	var url = 'index.php?v=d&modal=icon.selector&selectIcon=1&showimg=1'
-	if (typeof jeeDialog !== 'undefined' && typeof jeeDialog.dialog === 'function') {
-		jeeDialog.dialog({
-			id: 'md_iconSelector',
-			title: '{{Choisir une illustration}}',
-			contentUrl: url,
-			width: '80vw',
-			height: '80vh',
-			callback: function () {
-				// Le sélecteur d'icône Jeedom émet un event 'iconSelected' ou appelle le callback
-				// On écoute le bouton "Appliquer" de la modale
-			}
-		})
-		// Écouter le clic sur Appliquer dans la modale
-		setTimeout(function () {
-			// Le sélecteur utilise l'event 'select' sur le dialogue
-			var $dialog = $('#md_iconSelector')
-			if ($dialog.length) {
-				$dialog.off('select.jeeModale').on('select.jeeModale', function (event, _icon) {
-					if (_icon) {
-						$('#in_widgetIconHtml').value(_icon)
-						$('#jeeModale-icon-preview').html(_icon)
-					}
-				})
-			}
-		}, 500)
-	} else {
-		// Fallback : ouvrir via jQuery UI dialog load
-		$('#md_modal').dialog({
-			title: '{{Choisir une illustration}}',
-			width: '80%',
-			height: 600
-		}).load(url, function () {
-			$('#md_modal').off('select.jeeModale').on('select.jeeModale', function (event, _icon) {
-				if (_icon) {
-					$('#in_widgetIconHtml').value(_icon)
-					$('#jeeModale-icon-preview').html(_icon)
-				}
-			})
-		})
-	}
+	jeedomUtils.chooseIcon(function (_icon) {
+		$('#in_widgetIconHtml').value(_icon)
+		$('#jeeModale-icon-preview').html(_icon)
+	}, { img: true })
 })
 
 $('#bt_clearWidgetIcon').off('click').on('click', function () {
