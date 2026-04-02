@@ -111,7 +111,7 @@ class JeeModale extends eqLogic {
 		$js .= '    success:function(data){';
 		$js .= '      if(data.state!=="ok"){alert(data.result);return;}';
 		$js .= '      var items=data.result,mapEq={},mapCmd={};';
-		$js .= '      for(var i=0;i<items.length;i++){if(items[i].type==="eqLogic")mapEq[items[i].id]=items[i].html;else mapCmd[items[i].id]=items[i].html;}';
+		$js .= '      for(var i=0;i<items.length;i++){var decoded=atob(items[i].html64);if(items[i].type==="eqLogic")mapEq[items[i].id]=decoded;else mapCmd[items[i].id]=decoded;}';
 		$js .= '      var html="<div class=\'jeeModale-modal-content\' style=\'display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:flex-start;\'>";';
 		$js .= '      for(var i=0;i<d.targets.length;i++){var t=d.targets[i];var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];if(!itemHtml)continue;';
 		$js .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';

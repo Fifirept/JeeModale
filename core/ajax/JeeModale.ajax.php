@@ -38,7 +38,7 @@ try {
 						'type' => 'eqLogic',
 						'id' => $eqId,
 						'name' => $eqLogic->getHumanName(true),
-						'html' => $eqLogic->toHtml('dashboard')
+						'html64' => base64_encode($eqLogic->toHtml('dashboard'))
 					);
 				}
 			}
@@ -52,7 +52,7 @@ try {
 						'type' => 'cmd',
 						'id' => $cmdId,
 						'name' => $cmd->getHumanName(true),
-						'html' => $cmd->toHtml('dashboard')
+						'html64' => base64_encode($cmd->toHtml('dashboard'))
 					);
 				}
 			}
