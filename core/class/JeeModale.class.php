@@ -21,26 +21,27 @@ class JeeModale extends eqLogic {
 	public function preRemove() {}
 	public function postRemove() {}
 
+	/**
+	 * Applique la largeur configurée à l'icône/image HTML
+	 * Nettoie d'abord les styles existants (chooseIcon injecte style="height:Xpx")
+	 */
 	private function applyIconSize($html) {
 		$w = intval($this->getConfiguration('iconWidth', 0));
+
+		// Nettoyer les attributs style existants injectés par chooseIcon
+		// chooseIcon ajoute style="height:XXpx" sur les <img>
+		$html = preg_replace('/\s*style=["\'][^"\']*["\']/i', '', $html);
+
 		if ($w <= 0) return $html;
 		$px = $w . 'px';
 
-		// Image <img>
+		// Image <img> : width + object-fit
 		if (strpos($html, '<img') !== false) {
-			$style = 'width:' . $px . ';object-fit:contain;';
-			if (strpos($html, "style='") !== false) {
-				return preg_replace("/style='([^']*)'/", "style='" . $style . "$1'", $html);
-			}
-			return str_replace('<img', "<img style='" . $style . "'", $html);
+			return str_replace('<img', "<img style='width:" . $px . ";object-fit:contain;'", $html);
 		}
-		// Icône <i>
+		// Icône <i> : font-size
 		if (strpos($html, '<i') !== false) {
-			$style = 'font-size:' . $px . ';';
-			if (strpos($html, "style='") !== false) {
-				return preg_replace("/style='([^']*)'/", "style='" . $style . "$1'", $html);
-			}
-			return str_replace('<i', "<i style='" . $style . "'", $html);
+			return str_replace('<i', "<i style='font-size:" . $px . ";'", $html);
 		}
 		return $html;
 	}
@@ -118,14 +119,12 @@ class JeeModale extends eqLogic {
 		$js .= '}';
 		$js .= '</script>';
 
-		// Injecter APRÈS le widget-name (titre) — chercher la fermeture </div> du widget-name
-		// Le HTML de parent::toHtml est : <div class="eqLogic..."><div class="widget-name">...</div>...contenu...</div>
+		// Injecter APRÈS le widget-name
 		$widgetNameEnd = strpos($html, '</div>', strpos($html, 'widget-name'));
 		if ($widgetNameEnd !== false) {
-			$insertPos = $widgetNameEnd + 6; // après le </div> du widget-name
+			$insertPos = $widgetNameEnd + 6;
 			$html = substr($html, 0, $insertPos) . $content . $js . substr($html, $insertPos);
 		} else {
-			// Fallback : injecter avant le dernier </div>
 			$lastDivPos = strrpos($html, '</div>');
 			if ($lastDivPos !== false) {
 				$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);

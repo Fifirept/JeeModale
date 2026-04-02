@@ -57,7 +57,7 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 	})
 })
 
-/* Sélecteur icône/image — img: true pour l'onglet Images */
+/* Sélecteur icône/image */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
 		$('#in_widgetIconHtml').value(_icon)
@@ -70,7 +70,25 @@ $('#bt_clearWidgetIcon').off('click').on('click', function () {
 	_jmUpdatePreview()
 })
 
-/* Preview */
+/* Preview — nettoie les styles existants avant d'appliquer la taille */
+function _jmStripStyle(html) {
+	return html.replace(/\s*style=['"][^'"]*['"]/gi, '')
+}
+
+function _jmApplyIconSize(html, w) {
+	// D'abord nettoyer tous les style existants (chooseIcon injecte height:Xpx)
+	html = _jmStripStyle(html)
+	if (!w) return html
+	var px = w + 'px'
+	if (html.indexOf('<img') !== -1) {
+		return html.replace('<img', "<img style='width:" + px + ";object-fit:contain;'")
+	}
+	if (html.indexOf('<i') !== -1) {
+		return html.replace('<i', "<i style='font-size:" + px + ";'")
+	}
+	return html
+}
+
 function _jmUpdatePreview() {
 	var iconHtml = $('#in_widgetIconHtml').value() || ''
 	var iconW = $('#in_iconWidth').value() || ''
@@ -82,27 +100,8 @@ function _jmUpdatePreview() {
 		return
 	}
 
-	var styledHtml = _jmApplyIconSize(iconHtml, iconW)
-	$('#jeeModale-icon-preview').html(styledHtml)
+	$('#jeeModale-icon-preview').html(_jmApplyIconSize(iconHtml, iconW))
 	$('#jeeModale-preview-name').text(eqName)
-}
-
-function _jmApplyIconSize(html, w) {
-	if (!w) return html
-	var px = w + 'px'
-	if (html.indexOf('<img') !== -1) {
-		if (html.indexOf('style=') !== -1) {
-			return html.replace(/style='([^']*)'/, "style='width:" + px + ";object-fit:contain;$1'")
-		}
-		return html.replace('<img', "<img style='width:" + px + ";object-fit:contain;'")
-	}
-	if (html.indexOf('<i') !== -1) {
-		if (html.indexOf('style=') !== -1) {
-			return html.replace(/style='([^']*)'/, "style='font-size:" + px + ";$1'")
-		}
-		return html.replace('<i', "<i style='font-size:" + px + ";'")
-	}
-	return html
 }
 
 $(document).on('change keyup input', '#in_widgetIconHtml, #in_iconWidth', _jmUpdatePreview)
