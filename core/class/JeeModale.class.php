@@ -72,6 +72,7 @@ class JeeModale extends eqLogic {
 				$targets[] = array(
 					'type' => $conf['targetType'],
 					'id' => intval($conf['targetId']),
+					'name' => $cmd->getName(),
 					'forceNewLine' => (!empty($conf['forceNewLine']) && $conf['forceNewLine'] == 1) ? true : false
 				);
 			}
@@ -118,7 +119,9 @@ class JeeModale extends eqLogic {
 		$js .= '      var html="<div class=\'jeeModale-modal-content\' style=\'display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:flex-start;\'>";';
 		$js .= '      for(var i=0;i<d.targets.length;i++){var t=d.targets[i];var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];if(!itemHtml)continue;';
 		$js .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';
-		$js .= '        html+="<div class=\'jeeModale-modal-item\'>"+itemHtml+"</div>";}';
+		// Afficher le nom personnalisé au-dessus de la commande
+		$js .= '        var nameLabel=(t.name&&t.type==="cmd")?"<div class=\'jeeModale-cmd-label\' style=\'text-align:center;font-size:0.85em;font-weight:bold;color:#555;margin-bottom:2px;\'>"+t.name+"</div>":"";';
+		$js .= '        html+="<div class=\'jeeModale-modal-item\'>"+nameLabel+itemHtml+"</div>";}';
 		$js .= '      html+="</div>";';
 		$js .= '      var opts={modal:true,close:function(){$(this).dialog("destroy").remove();}};';
 		$js .= '      if(d.mW>0)opts.width=d.mW;else opts.width=Math.min(900,$(window).width()*0.9);';
