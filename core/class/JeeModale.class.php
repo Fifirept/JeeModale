@@ -80,7 +80,10 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		$content = '<div class="jeeModale-widget-inner" style="display:flex;align-items:center;justify-content:center;padding:5px;cursor:pointer;"'
+		// CSS effet bouton (injecté une seule fois)
+		$content = '<style>.jeeModale-widget-inner{transition:transform .12s ease;}'
+			. '.jeeModale-widget-inner:active{transform:scale(0.9);}</style>';
+		$content .= '<div class="jeeModale-widget-inner" style="display:flex;align-items:center;justify-content:center;padding:5px;cursor:pointer;"'
 			. ' onclick="jeeModale_openModal(' . $eqId . ')">'
 			. $widgetIconHtml
 			. '</div>';
