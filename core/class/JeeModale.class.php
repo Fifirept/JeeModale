@@ -80,9 +80,16 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		// CSS effet bouton (injecté une seule fois)
-		$content = '<style>.jeeModale-widget-inner{transition:transform .12s ease;}'
-			. '.jeeModale-widget-inner:active{transform:scale(0.9);}</style>';
+		// CSS effet bouton widget + style commandes action dans la modale
+		$content = '<style>'
+			. '.jeeModale-widget-inner{transition:transform .12s ease;}'
+			. '.jeeModale-widget-inner:active{transform:scale(0.9);}'
+			// Commandes action dans la modale : afficher le nom au dessus et effet bouton
+			. '.jeeModale-modal-item .cmd[data-type="action"] .title{display:block !important;text-align:center;margin-bottom:2px;}'
+			. '.jeeModale-modal-item .cmd[data-type="action"] .title .cmdName{font-size:0.8em;color:#666;}'
+			. '.jeeModale-modal-item .cmd[data-type="action"] .btn{transition:transform .1s ease;}'
+			. '.jeeModale-modal-item .cmd[data-type="action"] .btn:active{transform:scale(0.9);}'
+			. '</style>';
 		$content .= '<div class="jeeModale-widget-inner" style="display:flex;align-items:center;justify-content:center;padding:5px;cursor:pointer;"'
 			. ' onclick="jeeModale_openModal(' . $eqId . ')">'
 			. $widgetIconHtml
@@ -113,9 +120,18 @@ class JeeModale extends eqLogic {
 		$js .= '      var opts={modal:true,close:function(){$(this).dialog("destroy").remove();}};';
 		$js .= '      if(d.mW>0)opts.width=d.mW;else opts.width=Math.min(900,$(window).width()*0.9);';
 		$js .= '      if(d.mH>0)opts.height=d.mH;else opts.height="auto";';
-		$js .= '      opts.open=function(){try{$(this).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
-		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(this));}}catch(e){}};';
-		$js .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'>"+html+"</div>");';
+		// Créer la modale vide d'abord
+		$js .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'></div>");';
+		$js .= '      opts.open=function(){';
+		$js .= '        var dlgEl=this;';
+		// innerHTML natif : insère le HTML SANS exécuter les <script>
+		$js .= '        dlgEl.innerHTML=html;';
+		// Exécuter les scripts manuellement maintenant que le DOM est construit
+		$js .= '        var scripts=dlgEl.querySelectorAll("script");';
+		$js .= '        scripts.forEach(function(s){try{eval(s.textContent);}catch(e){}});';
+		$js .= '        try{$(dlgEl).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
+		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(dlgEl));}}catch(e){}';
+		$js .= '      };';
 		$js .= '      $("body").append($dlg);$dlg.dialog(opts);';
 		$js .= '    },error:function(){alert("Erreur lors du chargement de la modale");}});';
 		$js .= '};';
