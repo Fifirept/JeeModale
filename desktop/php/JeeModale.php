@@ -135,14 +135,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
 									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconWidth" placeholder="auto" min="10" id="in_iconWidth">
 								</div>
 							</div>
-							<div class="form-group">
-								<label class="col-sm-4 control-label">{{Hauteur icône/image (px)}}
-									<sup><i class="fas fa-question-circle tooltips" title="{{Laisser vide pour la taille par défaut}}"></i></sup>
-								</label>
-								<div class="col-sm-3">
-									<input type="number" class="eqLogicAttr form-control" data-l1key="configuration" data-l2key="iconHeight" placeholder="auto" min="10" id="in_iconHeight">
-								</div>
-							</div>
 
 							<legend><i class="fas fa-expand-arrows-alt"></i> {{Dimensions de la modale}}</legend>
 							<div class="form-group">
@@ -170,7 +162,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 							<legend><i class="fas fa-eye"></i> {{Aperçu du widget}}</legend>
 							<div class="form-group">
 								<div class="col-sm-8 col-sm-offset-2">
-									<div id="jeeModale-preview-box" style="border:1px dashed #ccc;border-radius:8px;padding:10px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f8f8;cursor:pointer;">
+									<div id="jeeModale-preview-box" style="border:1px dashed #ccc;border-radius:8px;padding:10px;min-height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f8f8f8;">
 										<div id="jeeModale-icon-preview" style="display:flex;align-items:center;justify-content:center;"></div>
 										<span id="jeeModale-preview-name" style="font-size:0.85em;margin-top:5px;color:#555;"></span>
 									</div>

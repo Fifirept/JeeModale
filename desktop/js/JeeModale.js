@@ -57,9 +57,7 @@ $('#bt_addTargetCmd').off('click').on('click', function () {
 	})
 })
 
-/* ========================================================
-   Sélecteur icône/image — img: true pour l'onglet Images
-   ======================================================== */
+/* Sélecteur icône/image — img: true pour l'onglet Images */
 $('#bt_chooseWidgetIcon').off('click').on('click', function () {
 	jeedomUtils.chooseIcon(function (_icon) {
 		$('#in_widgetIconHtml').value(_icon)
@@ -72,13 +70,10 @@ $('#bt_clearWidgetIcon').off('click').on('click', function () {
 	_jmUpdatePreview()
 })
 
-/* ========================================================
-   Preview : affiche l'icône/image avec les dimensions configurées
-   ======================================================== */
+/* Preview */
 function _jmUpdatePreview() {
 	var iconHtml = $('#in_widgetIconHtml').value() || ''
 	var iconW = $('#in_iconWidth').value() || ''
-	var iconH = $('#in_iconHeight').value() || ''
 	var eqName = $('.eqLogicAttr[data-l1key="name"]').value() || ''
 
 	if (iconHtml === '') {
@@ -87,58 +82,39 @@ function _jmUpdatePreview() {
 		return
 	}
 
-	// Appliquer les dimensions à l'icône/image
-	var styledHtml = _jmApplyIconSize(iconHtml, iconW, iconH)
+	var styledHtml = _jmApplyIconSize(iconHtml, iconW)
 	$('#jeeModale-icon-preview').html(styledHtml)
 	$('#jeeModale-preview-name').text(eqName)
 }
 
-function _jmApplyIconSize(html, w, h) {
-	var style = ''
-	if (w) style += 'width:' + w + 'px;'
-	if (h) style += 'height:' + h + 'px;'
-	if (!style) return html
-
-	// Pour les images <img>
+function _jmApplyIconSize(html, w) {
+	if (!w) return html
+	var px = w + 'px'
 	if (html.indexOf('<img') !== -1) {
-		// Remplacer ou ajouter le style sur le <img>
 		if (html.indexOf('style=') !== -1) {
-			return html.replace(/style='([^']*)'/, "style='" + style + "object-fit:contain;$1'")
-		} else {
-			return html.replace('<img', "<img style='" + style + "object-fit:contain;'")
+			return html.replace(/style='([^']*)'/, "style='width:" + px + ";object-fit:contain;$1'")
 		}
+		return html.replace('<img', "<img style='width:" + px + ";object-fit:contain;'")
 	}
-	// Pour les icônes <i>
 	if (html.indexOf('<i') !== -1) {
-		var fontSize = h || w || ''
-		if (fontSize) {
-			var iconStyle = 'font-size:' + fontSize + 'px;'
-			if (html.indexOf('style=') !== -1) {
-				return html.replace(/style='([^']*)'/, "style='" + iconStyle + "$1'")
-			} else {
-				return html.replace('<i', "<i style='" + iconStyle + "'")
-			}
+		if (html.indexOf('style=') !== -1) {
+			return html.replace(/style='([^']*)'/, "style='font-size:" + px + ";$1'")
 		}
+		return html.replace('<i', "<i style='font-size:" + px + ";'")
 	}
 	return html
 }
 
-/* Mise à jour du preview en temps réel */
-$(document).on('change keyup input', '#in_widgetIconHtml, #in_iconWidth, #in_iconHeight', function () {
-	_jmUpdatePreview()
-})
+$(document).on('change keyup input', '#in_widgetIconHtml, #in_iconWidth', _jmUpdatePreview)
 $(document).on('change keyup', '.eqLogicAttr[data-l1key="name"]', function () {
 	$('#jeeModale-preview-name').text($(this).value() || '')
 })
 
-/* Synchroniser le preview au chargement d'un équipement */
 $('body').off('JeeModale::printEqLogic').on('JeeModale::printEqLogic', function () {
 	setTimeout(_jmUpdatePreview, 300)
 })
 
-/* ========================================================
-   addCmdToTable
-   ======================================================== */
+/* addCmdToTable */
 function addCmdToTable(_cmd) {
 	if (!isset(_cmd)) { var _cmd = { configuration: {} } }
 	if (!isset(_cmd.configuration)) { _cmd.configuration = {} }

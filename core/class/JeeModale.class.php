@@ -21,36 +21,26 @@ class JeeModale extends eqLogic {
 	public function preRemove() {}
 	public function postRemove() {}
 
-	/**
-	 * Applique les dimensions configurées à l'icône/image HTML
-	 */
 	private function applyIconSize($html) {
 		$w = intval($this->getConfiguration('iconWidth', 0));
-		$h = intval($this->getConfiguration('iconHeight', 0));
-		if ($w <= 0 && $h <= 0) return $html;
-
-		$style = '';
-		if ($w > 0) $style .= 'width:' . $w . 'px;';
-		if ($h > 0) $style .= 'height:' . $h . 'px;';
+		if ($w <= 0) return $html;
+		$px = $w . 'px';
 
 		// Image <img>
 		if (strpos($html, '<img') !== false) {
-			$style .= 'object-fit:contain;';
+			$style = 'width:' . $px . ';object-fit:contain;';
 			if (strpos($html, "style='") !== false) {
 				return preg_replace("/style='([^']*)'/", "style='" . $style . "$1'", $html);
-			} else {
-				return str_replace('<img', "<img style='" . $style . "'", $html);
 			}
+			return str_replace('<img', "<img style='" . $style . "'", $html);
 		}
 		// Icône <i>
 		if (strpos($html, '<i') !== false) {
-			$fontSize = $h > 0 ? $h : $w;
-			$iconStyle = 'font-size:' . $fontSize . 'px;';
+			$style = 'font-size:' . $px . ';';
 			if (strpos($html, "style='") !== false) {
-				return preg_replace("/style='([^']*)'/", "style='" . $iconStyle . "$1'", $html);
-			} else {
-				return str_replace('<i', "<i style='" . $iconStyle . "'", $html);
+				return preg_replace("/style='([^']*)'/", "style='" . $style . "$1'", $html);
 			}
+			return str_replace('<i', "<i style='" . $style . "'", $html);
 		}
 		return $html;
 	}
@@ -69,7 +59,6 @@ class JeeModale extends eqLogic {
 		if (empty($widgetIconHtml)) {
 			$widgetIconHtml = '<i class="fas fa-window-maximize" style="font-size:1.5em;"></i>';
 		}
-		// Appliquer les dimensions
 		$widgetIconHtml = $this->applyIconSize($widgetIconHtml);
 
 		$modalWidth = intval($this->getConfiguration('modalWidth', 0));
@@ -90,9 +79,9 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		$content = '<div class="jeeModale-widget-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px;cursor:pointer;min-height:40px;"'
+		$content = '<div class="jeeModale-widget-inner" style="display:flex;align-items:center;justify-content:center;padding:5px;cursor:pointer;"'
 			. ' onclick="jeeModale_openModal(' . $eqId . ')">'
-			. '<div>' . $widgetIconHtml . '</div>'
+			. $widgetIconHtml
 			. '</div>';
 
 		$js = '<script type="text/javascript">';
@@ -129,9 +118,18 @@ class JeeModale extends eqLogic {
 		$js .= '}';
 		$js .= '</script>';
 
-		$lastDivPos = strrpos($html, '</div>');
-		if ($lastDivPos !== false) {
-			$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);
+		// Injecter APRÈS le widget-name (titre) — chercher la fermeture </div> du widget-name
+		// Le HTML de parent::toHtml est : <div class="eqLogic..."><div class="widget-name">...</div>...contenu...</div>
+		$widgetNameEnd = strpos($html, '</div>', strpos($html, 'widget-name'));
+		if ($widgetNameEnd !== false) {
+			$insertPos = $widgetNameEnd + 6; // après le </div> du widget-name
+			$html = substr($html, 0, $insertPos) . $content . $js . substr($html, $insertPos);
+		} else {
+			// Fallback : injecter avant le dernier </div>
+			$lastDivPos = strrpos($html, '</div>');
+			if ($lastDivPos !== false) {
+				$html = substr($html, 0, $lastDivPos) . $content . $js . substr($html, $lastDivPos);
+			}
 		}
 
 		return $html;
