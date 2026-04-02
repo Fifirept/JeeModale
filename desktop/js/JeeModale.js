@@ -146,6 +146,9 @@ function addCmdToTable(_cmd) {
 	tr += '<td style="text-align:center;">'
 	tr += '<input type="checkbox" class="cmdAttr" data-l1key="configuration" data-l2key="forceNewLine">'
 	tr += '</td>'
+	tr += '<td style="text-align:center;">'
+	tr += '<input type="checkbox" class="cmdAttr" data-l1key="configuration" data-l2key="hideLabel">'
+	tr += '</td>'
 	tr += '<td><i class="fas fa-minus-circle pull-right cmdAction cursor" data-action="remove" title="{{Supprimer la commande}}"></i></td>'
 	tr += '</tr>'
 

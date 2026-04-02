@@ -188,6 +188,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
 								<th style="min-width:100px;width:120px;">{{Type cible}}</th>
 								<th style="min-width:200px;">{{Cible}}</th>
 								<th style="min-width:80px;width:140px;" title="{{Retour à la ligne forcé avant cet élément dans la modale}}">{{Retour ligne avant}}</th>
+								<th style="min-width:80px;width:110px;" title="{{Masquer le nom/label dans la modale}}">{{Masquer nom}}</th>
 								<th style="min-width:80px;width:100px;">{{Actions}}</th>
 							</tr>
 						</thead>
