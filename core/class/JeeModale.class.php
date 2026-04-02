@@ -80,13 +80,14 @@ class JeeModale extends eqLogic {
 		$eqId = $this->getId();
 		$jsonTargets = json_encode($targets);
 
-		// CSS effet bouton widget + style commandes action dans la modale
+		// CSS effet bouton widget + style commandes dans la modale
 		$content = '<style>'
 			. '.jeeModale-widget-inner{transition:transform .12s ease;}'
 			. '.jeeModale-widget-inner:active{transform:scale(0.9);}'
-			// Commandes action dans la modale : afficher le nom au dessus et effet bouton
-			. '.jeeModale-modal-item .cmd[data-type="action"] .title{display:block !important;text-align:center;margin-bottom:2px;}'
+			// Nom commandes action dans la modale
+			. '.jeeModale-modal-item .cmd[data-type="action"] .title{text-align:center;margin-bottom:2px;}'
 			. '.jeeModale-modal-item .cmd[data-type="action"] .title .cmdName{font-size:0.8em;color:#666;}'
+			// Effet bouton sur les commandes action
 			. '.jeeModale-modal-item .cmd[data-type="action"] .btn{transition:transform .1s ease;}'
 			. '.jeeModale-modal-item .cmd[data-type="action"] .btn:active{transform:scale(0.9);}'
 			. '</style>';
@@ -129,6 +130,8 @@ class JeeModale extends eqLogic {
 		// Exécuter les scripts manuellement maintenant que le DOM est construit
 		$js .= '        var scripts=dlgEl.querySelectorAll("script");';
 		$js .= '        scripts.forEach(function(s){try{eval(s.textContent);}catch(e){}});';
+		// Afficher le nom des commandes action : retirer la classe hidden du .title
+		$js .= '        dlgEl.querySelectorAll(".cmd[data-type=action] .title").forEach(function(el){el.classList.remove("hidden");el.style.display="block";});';
 		$js .= '        try{$(dlgEl).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
 		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(dlgEl));}}catch(e){}';
 		$js .= '      };';
