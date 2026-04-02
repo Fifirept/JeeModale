@@ -112,7 +112,9 @@ class JeeModale extends eqLogic {
 		$js .= '    success:function(data){';
 		$js .= '      if(data.state!=="ok"){alert(data.result);return;}';
 		$js .= '      var items=data.result,mapEq={},mapCmd={};';
-		$js .= '      for(var i=0;i<items.length;i++){var decoded=atob(items[i].html64);if(items[i].type==="eqLogic")mapEq[items[i].id]=decoded;else mapCmd[items[i].id]=decoded;}';
+		// Décodage base64 UTF-8 : atob donne du Latin-1, escape+decodeURIComponent convertit en UTF-8
+		$js .= '      function _jmB64(b){try{return decodeURIComponent(escape(atob(b)));}catch(e){return atob(b);}}';
+		$js .= '      for(var i=0;i<items.length;i++){var decoded=_jmB64(items[i].html64);if(items[i].type==="eqLogic")mapEq[items[i].id]=decoded;else mapCmd[items[i].id]=decoded;}';
 		$js .= '      var html="<div class=\'jeeModale-modal-content\' style=\'display:flex;flex-wrap:wrap;gap:8px;padding:10px;align-items:flex-start;\'>";';
 		$js .= '      for(var i=0;i<d.targets.length;i++){var t=d.targets[i];var itemHtml=(t.type==="eqLogic")?mapEq[t.id]:mapCmd[t.id];if(!itemHtml)continue;';
 		$js .= '        if(t.forceNewLine){html+="<div style=\'flex-basis:100%;height:0;\'></div>";}';
@@ -130,7 +132,11 @@ class JeeModale extends eqLogic {
 		// Exécuter les scripts manuellement maintenant que le DOM est construit
 		$js .= '        var scripts=dlgEl.querySelectorAll("script");';
 		$js .= '        scripts.forEach(function(s){try{eval(s.textContent);}catch(e){}});';
-		// Afficher le nom des commandes action : retirer la classe hidden du .title
+		// Afficher le nom des commandes action : chercher .title ou .cmdName masqués
+		$js .= '        dlgEl.querySelectorAll(".cmd[data-type=action] .hidden").forEach(function(el){';
+		$js .= '          if(el.querySelector(".cmdName")||el.classList.contains("cmdName")){el.classList.remove("hidden");el.style.display="block";}';
+		$js .= '        });';
+		// Aussi forcer l'affichage des .title directement
 		$js .= '        dlgEl.querySelectorAll(".cmd[data-type=action] .title").forEach(function(el){el.classList.remove("hidden");el.style.display="block";});';
 		$js .= '        try{$(dlgEl).find(".jeeModale-modal-content").sortable({items:".jeeModale-modal-item",cursor:"move",placeholder:"ui-state-highlight",tolerance:"pointer"});}catch(e){}';
 		$js .= '        try{if(typeof jeedomUtils!=="undefined"&&typeof jeedomUtils.initTooltips==="function"){jeedomUtils.initTooltips($(dlgEl));}}catch(e){}';

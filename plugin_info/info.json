@@ -1,7 +1,7 @@
 {
 	"id": "JeeModale",
 	"name": "JeeModale",
-	"pluginVersion": "2.6",
+	"pluginVersion": "2.7",
 	"description": {
 		"fr_FR": "Affichage d'un équipement ou d'une commande sous forme de modale"
 	},
