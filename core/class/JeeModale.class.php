@@ -129,6 +129,7 @@ class JeeModale extends eqLogic {
 		$js .= '      var opts={modal:true,close:function(){$(this).dialog("destroy").remove();}};';
 		$js .= '      if(d.mW>0)opts.width=d.mW;else opts.width=Math.min(900,$(window).width()*0.9);';
 		$js .= '      if(d.mH>0)opts.height=d.mH;else opts.height="auto";';
+        $js .= '      opts.position={my:"center top",at:"center top+55",of:window};';
 		// Créer la modale vide d'abord
 		$js .= '      var $dlg=$("<div id=\'md_jeeModale_"+eqId+"\' title=\'"+d.name+"\'></div>");';
 		$js .= '      opts.open=function(){';
